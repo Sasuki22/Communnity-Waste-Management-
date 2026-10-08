@@ -1,0 +1,87 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+backend/__pycache__/
+backend/routes/__pycache__/
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# SQLite Database (local only)
+*.db
+*.sqlite
+*.sqlite3
+backend/community_waste.db
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Composer (PHP)
+vendor/
+composer.lock
+
+# Node modules (if using npm later)
+node_modules/
+package-lock.json
+
+# Sensitive information
+config.php
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.json
