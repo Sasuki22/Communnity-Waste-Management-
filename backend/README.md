@@ -4,7 +4,7 @@ This directory contains the Python Flask REST API backend for the **Community Wa
 
 ---
 
-## 🚀 How to Run the Backend
+# ow to Run the Backend
 
 From the project root:
 ```bash
@@ -22,7 +22,7 @@ The server starts by default at:
 
 ---
 
-## 📡 API Endpoints
+# PI Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -36,7 +36,7 @@ The server starts by default at:
 
 ---
 
-## 🧪 Running Unit Tests
+# Running Unit Tests
 
 Run automated tests from the workspace root:
 ```bash
@@ -45,7 +45,7 @@ py -m unittest backend.test_api
 
 ---
 
-## 📁 Architecture
+# Architecture
 
 - `app.py`: Flask application factory, CORS headers middleware, and route registration.
 - `config.py`: Environment configuration and SQLite DB path.
