@@ -2,6 +2,8 @@
 session_start();
 if (!isset($_SESSION['user_id'])) { header('Location: index.php'); exit; }
 $name = htmlspecialchars($_SESSION['user_name'] ?? 'User', ENT_QUOTES, 'UTF-8');
+$role = $_SESSION['user_role'] ?? 'user';
+$isAdmin = ($role === 'admin');
 ?>
 <!doctype html>
 <html lang="en">
@@ -12,29 +14,30 @@ $name = htmlspecialchars($_SESSION['user_name'] ?? 'User', ENT_QUOTES, 'UTF-8');
 </head>
 <body>
 
-          <div class="layout">
-     <aside class="sidebar">
-        <h2>♻️ Community Waste Management System</h2>
-      <nav aria-label="Dashboard navigation">
-    <a class="active" href="dashboard.php">⌂ &nbsp; Dashboard</a>
-    <a href="#schedule" data-open-schedule>▦ &nbsp; Schedule</a>
-    <a href="#pickup" data-open-pickup>🚚 &nbsp; Request Pickup</a>
-    <a href="#guide" data-open-guide>📖 &nbsp; Recycling Guide</a>
-    <a href="#issue" data-open-issue>⚠ &nbsp; Report Issue</a>
-    <a href="#community" data-open-community>♧ &nbsp; Community</a>
-    <a href="#profile" data-open-profile>♙ &nbsp; Profile</a>
-</nav>
-   <a class="logout" href="logout.php">⇥ &nbsp; Logout</a>
-</aside>
-     
 <div class="main">
     <header class="topbar">
-        <strong>♻️ Community Waste Management</strong>
+        <div class="topbar-left">
+            <button type="button" class="profile-info" id="profileBtn" aria-haspopup="dialog" aria-controls="profileModal">
+                👤 <strong><?= $name ?></strong>
+                <?php if ($isAdmin): ?>
+                    <span class="admin-badge">Admin</span>
+                <?php endif; ?>
+            </button>
+        </div>
+        <strong class="topbar-center">♻️ Community Waste Management</strong>
         <div class="topbar-right">
+            <?php if ($isAdmin): ?>
+                <button type="button" class="admin-btn" onclick="window.location.href='admin_modern.php'">
+                    ⚙️ Admin Dashboard
+                </button>
+            <?php endif; ?>
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle Theme">
                 <span class="toggle-icon">&#9790;</span> <span class="toggle-label">Dark</span>
             </button>
-            <span id="profile">👤 <?= $name ?></span>
+            <a class="topbar-logout" href="logout.php" aria-label="Log out of your account">
+                <span aria-hidden="true">⇥</span>
+                <span>Logout</span>
+            </a>
         </div>
     </header>
     <main class="content">
@@ -81,10 +84,24 @@ $name = htmlspecialchars($_SESSION['user_name'] ?? 'User', ENT_QUOTES, 'UTF-8');
                 </div>
             </div>
             <div class="panel" id="announcements">
-                <h3>Announcements</h3>
-                <p>📢 Schedule Update</p>
-                <p>📢 Recycling Drive</p>
-                <p>📢 Keep Our Community Clean</p>
+                <div class="panel-header">
+                    <h3>Announcements</h3>
+                    <span class="panel-kicker">Community updates</span>
+                </div>
+                <div id="announcementsList" class="announcements-list" aria-live="polite" aria-busy="true">
+                    <article class="announcement-item">
+                        <span class="announcement-icon" aria-hidden="true">📢</span>
+                        <div class="announcement-copy"><h4>Schedule Update</h4></div>
+                    </article>
+                    <article class="announcement-item">
+                        <span class="announcement-icon" aria-hidden="true">📢</span>
+                        <div class="announcement-copy"><h4>Recycling Drive</h4></div>
+                    </article>
+                    <article class="announcement-item">
+                        <span class="announcement-icon" aria-hidden="true">📢</span>
+                        <div class="announcement-copy"><h4>Keep Our Community Clean</h4></div>
+                    </article>
+                </div>
             </div>
         </section>
     </main>

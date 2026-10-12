@@ -5,6 +5,7 @@
  */
 const API_BASE = "http://127.0.0.1:5000/api";
 const PHP_API = "api_pickup.php";
+const DASHBOARD_API = "dashboard_api.php";
 
 const DEFAULT_SCHEDULES = [
     { id: 1, waste_type: "General Waste", icon: "🗑️", day_of_week: "Monday", time_slot: "07:00 AM - 10:00 AM", zone: "All Zones", frequency: "Weekly", description: "Non-recyclable household waste." },
@@ -18,9 +19,18 @@ let activeZone = "All Zones";
 document.addEventListener("DOMContentLoaded", () => {
     initThemeToggle();
     loadUpcomingSchedule();
+    loadAnnouncements();
     setupEventListeners();
     const dateInput = document.getElementById("pDate");
     if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
+
+    // Profile click handler
+    const profileBtn = document.getElementById("profileBtn");
+    if (profileBtn) {
+        profileBtn.addEventListener("click", () => {
+            openProfileModal();
+        });
+    }
 });
 
 async function loadUpcomingSchedule() {
@@ -35,6 +45,71 @@ async function loadUpcomingSchedule() {
         }
     } catch (e) {}
     renderUpcomingList(DEFAULT_SCHEDULES, container);
+}
+
+async function loadAnnouncements() {
+    const list = document.getElementById("announcementsList");
+    if (!list) return;
+
+    list.setAttribute("aria-busy", "true");
+
+    try {
+        const response = await fetch(`${DASHBOARD_API}?action=announcements`, {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        });
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.message || "Unable to load announcements.");
+        }
+
+        renderAnnouncements(payload.data || [], list);
+    } catch (error) {
+        list.innerHTML = `
+            <p class="announcements-state error">
+                Unable to load announcements.
+                <button type="button" class="announcement-retry">Retry</button>
+            </p>`;
+        list.querySelector(".announcement-retry")?.addEventListener("click", loadAnnouncements);
+        console.error("Unable to load announcements:", error);
+    } finally {
+        list.removeAttribute("aria-busy");
+    }
+}
+
+function renderAnnouncements(announcements, list) {
+    if (!announcements.length) {
+        list.innerHTML = '<p class="announcements-state">No community announcements yet. Please check back soon.</p>';
+        return;
+    }
+
+    list.innerHTML = announcements.map(announcement => {
+        const title = escapeHtml(announcement.title || "Community update");
+        const message = announcement.message
+            ? `<p>${escapeHtml(announcement.message)}</p>`
+            : "";
+        const date = formatAnnouncementDate(announcement.created_at);
+
+        return `
+            <article class="announcement-item">
+                <span class="announcement-icon" aria-hidden="true">📢</span>
+                <div class="announcement-copy">
+                    <h4>${title}</h4>
+                    ${message}
+                    ${date ? `<time class="announcement-date">${escapeHtml(date)}</time>` : ""}
+                </div>
+            </article>`;
+    }).join("");
+}
+
+function formatAnnouncementDate(value) {
+    if (!value) return "";
+
+    const date = new Date(String(value).replace(" ", "T"));
+    if (Number.isNaN(date.getTime())) return "";
+
+    return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
 function renderUpcomingList(items, container) {

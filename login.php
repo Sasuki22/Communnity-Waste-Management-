@@ -28,7 +28,7 @@ if ($email === '' || $password === '') {
 }
 
 $stmt = $conn->prepare(
-    "SELECT id, full_name, email, password
+    "SELECT id, full_name, email, password, role
      FROM users
      WHERE email = ?
      LIMIT 1"
@@ -48,6 +48,7 @@ if ($user && password_verify($password, $user['password'])) {
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_name'] = $user['full_name'];
     $_SESSION['user_email'] = $user['email'];
+    $_SESSION['user_role'] = $user['role'] ?? 'user';
 
     echo json_encode([
         'success' => true,
@@ -55,7 +56,8 @@ if ($user && password_verify($password, $user['password'])) {
         'user' => [
             'id' => $user['id'],
             'name' => $user['full_name'],
-            'email' => $user['email']
+            'email' => $user['email'],
+            'role' => $user['role'] ?? 'user'
         ]
     ]);
     exit;

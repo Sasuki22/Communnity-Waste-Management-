@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `full_name` VARCHAR(100) NOT NULL,
   `email` VARCHAR(150) NOT NULL UNIQUE,
   `password` VARCHAR(255) NOT NULL,
+  `role` ENUM('user', 'admin') DEFAULT 'user',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -55,6 +56,16 @@ CREATE TABLE IF NOT EXISTS `reported_issues` (
   `status` ENUM('Open','In Progress','Resolved','Closed') DEFAULT 'Open',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Administrator-published notices for community members
+CREATE TABLE IF NOT EXISTS `announcements` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `title` VARCHAR(150) NOT NULL,
+  `message` TEXT NOT NULL,
+  `created_by` INT DEFAULT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default schedule data
