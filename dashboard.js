@@ -17,29 +17,11 @@ let activeZone = "All Zones";
 
 document.addEventListener("DOMContentLoaded", () => {
     initThemeToggle();
-    initApiStatus();
     loadUpcomingSchedule();
     setupEventListeners();
     const dateInput = document.getElementById("pDate");
     if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
 });
-
-async function initApiStatus() {
-    const statusEl = document.getElementById("apiStatus");
-    if (!statusEl) return;
-    try {
-        const res = await fetch(`${API_BASE}/health`, { method: "GET", cache: "no-store" });
-        if (res.ok) {
-            statusEl.textContent = "● Live Schedule API";
-            statusEl.classList.remove("offline");
-        } else {
-            throw new Error();
-        }
-    } catch (e) {
-        statusEl.textContent = "○ Standby API";
-        statusEl.classList.add("offline");
-    }
-}
 
 async function loadUpcomingSchedule() {
     const container = document.getElementById("upcomingScheduleList");

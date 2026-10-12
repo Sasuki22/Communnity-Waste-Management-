@@ -34,7 +34,6 @@ $name = htmlspecialchars($_SESSION['user_name'] ?? 'User', ENT_QUOTES, 'UTF-8');
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle Theme">
                 <span class="toggle-icon">&#9790;</span> <span class="toggle-label">Dark</span>
             </button>
-            <span class="api-status" id="apiStatus">● API Ready</span>
             <span id="profile">👤 <?= $name ?></span>
         </div>
     </header>
