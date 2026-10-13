@@ -22,7 +22,10 @@ def load_env():
 load_env()
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATABASE_PATH = os.path.join(BASE_DIR, "community_waste.db")
+# Allow the database location to be overridden (e.g. by Docker, which
+# mounts a persistent volume at /app/data). Falls back to the local
+# SQLite file inside the backend folder (XAMPP / local development).
+DATABASE_PATH = os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "community_waste.db"))
 
 # Get configuration from environment variables with fallback defaults
 PORT = int(os.environ.get("FLASK_PORT", "5000"))

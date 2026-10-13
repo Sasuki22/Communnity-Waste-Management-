@@ -1,9 +1,10 @@
 /**
  * Community Waste Management - Dashboard & Schedule Interactions
  * Pickup requests and issue reports are saved to MySQL (phpMyAdmin)
- * Schedule data is fetched from Python Flask API on http://127.0.0.1:5000/api
+ * Schedule data is fetched from the Python Flask API.
+ * The API base URL is set in config.js (window.CWM_API_BASE).
  */
-const API_BASE = "http://127.0.0.1:5000/api";
+const API_BASE = window.CWM_API_BASE || "http://127.0.0.1:5000/api";
 const PHP_API = "api_pickup.php";
 const DASHBOARD_API = "dashboard_api.php";
 

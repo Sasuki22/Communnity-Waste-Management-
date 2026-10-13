@@ -1,0 +1,15 @@
+# Files/folders excluded from the Docker build context (web image)
+.git
+.gitignore
+.vscode
+.env
+.env.local
+.env.*.local
+backup
+__pycache__
+*.py[cod]
+*.log
+*.db
+*.sqlite3
+Thumbs.db
+desktop.ini

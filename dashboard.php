@@ -309,5 +309,6 @@ $isAdmin = ($role === 'admin');
     </div>
 </dialog>
 
+<script src="config.js"></script>
 <script src="dashboard.js"></script>
 </body></html>

@@ -116,6 +116,10 @@ const D = {
     ]
 };
 
+// Base URL for the Flask schedule API.
+// Set in config.js (window.CWM_API_BASE); fallback for older setups.
+const API_BASE = window.CWM_API_BASE || "http://127.0.0.1:5000/api";
+
 const dlg = document.getElementById("dlg");
 const dt = document.getElementById("dt");
 const db = document.getElementById("db");
@@ -480,7 +484,7 @@ const openButton =
         const selectedZone = area.value;
         result.textContent = "Checking schedule...";
 
-        fetch(`http://127.0.0.1:5000/api/schedules/zones`)
+        fetch(`${API_BASE}/schedules/zones`)
             .then(res => res.json())
             .then(json => {
                 if (json.success && json.data && json.data[selectedZone]) {

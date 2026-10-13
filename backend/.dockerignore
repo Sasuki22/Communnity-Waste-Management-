@@ -1,0 +1,6 @@
+# Files/folders excluded from the Flask image build context
+__pycache__
+*.py[cod]
+.env
+*.log
+community_waste.db
