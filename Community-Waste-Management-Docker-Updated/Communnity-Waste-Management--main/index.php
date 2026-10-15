@@ -81,19 +81,19 @@
             <h2>About</h2>
             <p>The Community Waste Management System helps neighbors sort waste correctly, schedule collections, and
                 take part in local clean-up programs, so your barangay stays clean and green.</p>
-            
-    <section class="pg" id="contact"></section>
+        </section>
 
-             <h2>Contact</h2>
-             <p>Questions or concerns about collection in your area? Send us a message.</p>
- <form class="ct" id="contactForm">
-       <input required placeholder="Your name" aria-label="Your name">
-       <input required type="email" placeholder="Email" aria-label="Email">
-       <textarea required rows="4" placeholder="Message" aria-label="Message"></textarea>
-       <button class="btn" type="submit" style="justify-self:start">Send message</button>
-       <div class="ok" id="sent" hidden>Thanks! Your message was sent.</div>
- </form>
-</section>
+        <section class="pg" id="contact">
+            <h2>Contact</h2>
+            <p>Questions or concerns about collection in your area? Send us a message.</p>
+            <form class="ct" id="contactForm">
+                <input name="name" required maxlength="100" placeholder="Your name" aria-label="Your name">
+                <input name="email" required type="email" maxlength="150" placeholder="Email" aria-label="Email">
+                <textarea name="message" required maxlength="5000" rows="4" placeholder="Message" aria-label="Message"></textarea>
+                <button class="btn" type="submit" style="justify-self:start">Send message</button>
+                <div class="ok" id="sent" hidden role="status" aria-live="polite">Thanks! Your message was sent.</div>
+                <p id="contactError" role="alert" hidden></p>
+            </form>
         </section>
 
     </main>
