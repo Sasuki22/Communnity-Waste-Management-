@@ -1,10 +1,51 @@
 <?php
-/**
- * Shared schedule storage for the Community Waste Management System.
- * Both the admin UI and resident dashboard use MySQL community_db.schedules.
- */
+
+function repairKnownMojibakeScheduleIcons(mysqli $conn): bool
+{
+    $corrections = [
+        // General Waste: known malformed icon bytes -> 🗑️
+        'C3B0C5B8E28094E28098C3AFC2B8C28F' => 'F09F9791EFB88F',
+        // Recyclable Waste: known malformed icon bytes -> ♻️
+        'C3A2E284A2C2BBC3AFC2B8C28F' => 'E299BBEFB88F',
+        // Organic Waste: known malformed icon bytes -> 🌿
+        'C3B0C5B8E2809CC2BF' => 'F09F8CBF',
+        // Hazardous Waste: known malformed icon bytes -> ⚠️
+        'C3A2C2A5C2A1C3AFC2B8C28F' => 'E29AA0EFB88F',
+    ];
+
+    $stmt = $conn->prepare(
+        "UPDATE schedules
+         SET icon = CONVERT(UNHEX(?) USING utf8mb4)
+         WHERE HEX(icon) = ?"
+    );
+    if (!$stmt) {
+        error_log('Unable to prepare schedule icon encoding repair.');
+        return false;
+    }
+
+    foreach ($corrections as $corruptedHex => $correctHex) {
+        $replacementHex = $correctHex;
+        $storedHex = $corruptedHex;
+        $stmt->bind_param('ss', $replacementHex, $storedHex);
+        if (!$stmt->execute()) {
+            error_log('Unable to repair a known corrupted schedule icon.');
+            $stmt->close();
+            return false;
+        }
+    }
+
+    $stmt->close();
+    return true;
+}
+
 function ensureSchedulesTable(mysqli $conn): bool
 {
+    // Force UTF-8 MB4 on this connection before any schema or icon operations.
+    if (!$conn->set_charset('utf8mb4')) {
+        error_log('Unable to set MySQL connection charset to utf8mb4.');
+        return false;
+    }
+
     $created = $conn->query("CREATE TABLE IF NOT EXISTS schedules (
         id INT AUTO_INCREMENT PRIMARY KEY,
         waste_type VARCHAR(100) NOT NULL,
@@ -19,6 +60,13 @@ function ensureSchedulesTable(mysqli $conn): bool
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
     if (!$created) {
+        return false;
+    }
+
+    // Automatically heal existing schedule icons with the exact corruption
+    // patterns found during the project's database audit. No manual SQL query
+    // is needed, and correctly stored/custom icons are not changed.
+    if (!repairKnownMojibakeScheduleIcons($conn)) {
         return false;
     }
 
@@ -102,3 +150,4 @@ function normalizeSchedulePayload(array $data): ?array
         'is_upcoming' => !empty($data['is_upcoming']) ? 1 : 0
     ];
 }
+
