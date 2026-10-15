@@ -41,11 +41,19 @@ $isAdmin = ($role === 'admin');
         </div>
     </header>
     <main class="content">
-        <section class="welcome">
-            <small>Welcome back,</small>
-            <h1><?= $name ?>!</h1>
-            <p>Let's keep our community clean and green together.</p>
-        </section>
+   
+
+<section class="welcome">
+    <div class="welcome-text">
+        <h2>Welcome back,</h2>
+        <h1><?= $name ?>!</h1>
+        <p>Let's keep our community clean and green together.</p>
+    </div>
+
+
+</section>
+
+
 
         <section class="features" id="actions">
             <div class="feature clickable" data-open-pickup role="button" tabindex="0">
