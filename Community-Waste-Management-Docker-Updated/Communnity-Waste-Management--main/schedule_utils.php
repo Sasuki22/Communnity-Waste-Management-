@@ -2,39 +2,38 @@
 
 function repairKnownMojibakeScheduleIcons(mysqli $conn): bool
 {
-    $corrections = [
-        // General Waste: known malformed icon bytes -> 🗑️
-        'C3B0C5B8E28094E28098C3AFC2B8C28F' => 'F09F9791EFB88F',
-        // Recyclable Waste: known malformed icon bytes -> ♻️
-        'C3A2E284A2C2BBC3AFC2B8C28F' => 'E299BBEFB88F',
-        // Organic Waste: known malformed icon bytes -> 🌿
-        'C3B0C5B8E2809CC2BF' => 'F09F8CBF',
-        // Hazardous Waste: known malformed icon bytes -> ⚠️
-        'C3A2C2A5C2A1C3AFC2B8C28F' => 'E29AA0EFB88F',
-    ];
-
-    $stmt = $conn->prepare(
-        "UPDATE schedules
-         SET icon = CONVERT(UNHEX(?) USING utf8mb4)
-         WHERE HEX(icon) = ?"
-    );
-    if (!$stmt) {
-        error_log('Unable to prepare schedule icon encoding repair.');
+    if (!$conn->set_charset('utf8mb4')) {
         return false;
     }
 
-    foreach ($corrections as $corruptedHex => $correctHex) {
-        $replacementHex = $correctHex;
-        $storedHex = $corruptedHex;
-        $stmt->bind_param('ss', $replacementHex, $storedHex);
+    $icons = [
+        'General Waste' => '🗑️',
+        'Recyclable Waste' => '♻️',
+        'Organic Waste' => '🌿',
+        'Hazardous Waste' => '⚠️'
+    ];
+
+    $stmt = $conn->prepare("
+        UPDATE schedules
+        SET icon = ?
+        WHERE waste_type = ?
+    ");
+
+    if (!$stmt) {
+        return false;
+    }
+
+    foreach ($icons as $wasteType => $icon) {
+        $stmt->bind_param("ss", $icon, $wasteType);
+
         if (!$stmt->execute()) {
-            error_log('Unable to repair a known corrupted schedule icon.');
             $stmt->close();
             return false;
         }
     }
 
     $stmt->close();
+
     return true;
 }
 
