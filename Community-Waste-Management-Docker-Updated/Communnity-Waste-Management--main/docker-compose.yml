@@ -13,31 +13,52 @@
 name: community-waste-management
 
 services:
+  
   db:
     image: mysql:8.0
     container_name: cwms_db
     restart: unless-stopped
+
+    # Connection para sa MySQL Workbench
+    ports:
+      - "127.0.0.1:3307:3306"
+
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-cwms_root_password}
       MYSQL_DATABASE: ${DB_DATABASE:-community_db}
       MYSQL_USER: ${MYSQL_USER:-cwms}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-cwms_password}
+
     volumes:
-      # Persistent MySQL data (survives restarts)
       - db_data:/var/lib/mysql
-      # Create the schema + seed the default MySQL schedules on first run
       - ./database/database.sql:/docker-entrypoint-initdb.d/01-database.sql:ro
+
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 30s
-    # NOTE: no host port is mapped for MySQL on purpose.
-    # Port 3306 is often taken by a local XAMPP MySQL. The app reaches
-    # this database through the Docker internal network using "db".
+
     networks:
       - cwms_net
+
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: cwms_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cwms_net
+
 
   web:
     build:
