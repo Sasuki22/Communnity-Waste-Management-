@@ -86,7 +86,7 @@
         <section class="pg" id="contact">
             <h2>Contact</h2>
             <p>Questions or concerns about collection in your area? Send us a message.</p>
-            <form class="ct" id="contactForm">
+            <form class="ct" id="contactForm" method="post" action="contact.php">
                 <input name="name" required maxlength="100" placeholder="Your name" aria-label="Your name">
                 <input name="email" required type="email" maxlength="150" placeholder="Email" aria-label="Email">
                 <textarea name="message" required maxlength="5000" rows="4" placeholder="Message" aria-label="Message"></textarea>
