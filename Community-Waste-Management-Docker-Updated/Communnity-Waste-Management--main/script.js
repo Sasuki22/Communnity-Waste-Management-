@@ -825,3 +825,39 @@ const response =
 );
 
 refresh();
+
+// Contact form: only show success after the server confirms database storage.
+document.addEventListener("submit", async (event) => {
+    if (event.target.id !== "contactForm") return;
+    event.preventDefault();
+
+    const form = event.target;
+    const sent = document.getElementById("sent");
+    const error = document.getElementById("contactError");
+    const button = form.querySelector('button[type="submit"]');
+    if (!sent || !error || !button) return;
+    sent.hidden = true;
+    sent.style.display = "none";
+    error.hidden = true;
+    button.disabled = true;
+    try {
+        const response = await fetch("contact.php", {
+            method: "POST",
+            headers: { "Accept": "application/json" },
+            body: new FormData(form)
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to send your message.");
+        }
+        sent.textContent = "Thanks! Your message was sent.";
+        sent.hidden = false;
+        sent.style.display = "block";
+        form.reset();
+    } catch (err) {
+        error.textContent = err.message || "Unable to send your message. Please try again.";
+        error.hidden = false;
+    } finally {
+        button.disabled = false;
+    }
+});
