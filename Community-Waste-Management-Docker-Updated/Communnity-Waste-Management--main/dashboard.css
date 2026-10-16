@@ -24,7 +24,7 @@
     justify-content: center;
     align-items: flex-start;
 
-    background-color: #effbe8;
+    background-color: rgb(244, 248, 242);
     background-image: url("./images/dashboard-recycling.png.png");
     background-repeat: no-repeat;
     background-position: right bottom;
@@ -3176,8 +3176,15 @@ body {
 
 :root:not([data-theme="dark"]), [data-theme="light"] {
 
-    --bg-content: linear-gradient(145deg, #d5f3b9 0%, #e5f8d5 48%, #d0f0c2 100%);
-
+   
+   
+--bg-content: linear-gradient(
+    to bottom,
+    #CEF1B8 0%,
+    #CEF1B8 48%,
+    #BCE17F 49%,
+    #BCE17F 100%
+);
     --bg-welcome: #edfae7;
 
     --sidebar-hover: #eaf7df;
@@ -3234,7 +3241,7 @@ body {
 
 }
 
-[data-theme="light"] .feature:nth-child(4n+1) { background: #f0faf0; }
+[data-theme="light"] .feature:nth-child(4n+1) { background: #fafffa; }
 
 [data-theme="light"] .feature:nth-child(4n+2) { background: #eaf3ff; }
 
@@ -3246,7 +3253,7 @@ body {
 
 [data-theme="light"] .panel {
 
-    background: #fff;
+    background: #ffffff;
 
     border: 1px solid #edf2e9;
 
@@ -3370,7 +3377,7 @@ body[data-theme="light"] .welcome,
     position: relative;
 }
 
-html[data-theme="light"] .welcome h1,
+html[data-theme="light"] .welcome h1 {color: #28B446 !important;}
 html[data-theme="light"] .welcome p,
 [data-theme="light"] .welcome h1,
 [data-theme="light"] .welcome p {
@@ -3449,4 +3456,49 @@ html[data-theme="dark"] #guideModal .sched-card {
     border-top: 1px solid #3b5c46;
     border-right: 1px solid #3b5c46;
     border-bottom: 1px solid #3b5c46;
+}
+
+
+/* SAME DASHBOARD SIZE IN LIGHT AND DARK MODE */
+
+.welcome {
+    box-sizing: border-box;
+    min-height: 260px;
+}
+
+.features {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.feature {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 145px;
+}
+
+.panels {
+    grid-template-columns: 1fr 1.3fr;
+}
+
+.panel {
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 300px;
+}
+
+/* Keep responsive layout */
+@media (max-width: 900px) {
+    .features {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panels {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .features {
+        grid-template-columns: 1fr;
+    }
 }
