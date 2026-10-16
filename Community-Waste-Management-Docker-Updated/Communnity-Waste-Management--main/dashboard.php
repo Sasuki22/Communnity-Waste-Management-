@@ -10,7 +10,7 @@ $isAdmin = ($role === 'admin');
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard | Community Waste Management</title>
-<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="dashboard.css?v=20261016">
 </head>
 <body>
 
@@ -289,33 +289,180 @@ $isAdmin = ($role === 'admin');
     </div>
 </dialog>
 
-<!-- Profile Modal Dialog -->
+<!-- MODERN EDITABLE PROFILE MODAL -->
 <dialog id="profileModal" class="modal">
     <div class="modal-box">
+
+        <!-- PROFILE MODAL HEADER -->
         <div class="modal-header">
-            <h2>👤 Member Profile</h2>
-            <button type="button" class="close-btn" data-close-modal>&times;</button>
+            <h2>👤 My Profile</h2>
+
+            <button
+                type="button"
+                class="close-btn"
+                data-close-modal
+                aria-label="Close profile"
+            >&times;</button>
         </div>
-        <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
-            <div class="sched-card">
-                <div style="font-size:13px; color:#556;">Member Name</div>
-                <div style="font-size:16px; font-weight:bold; color:#1a3322;"><?= $name ?></div>
-            </div>
-            <div class="sched-card">
-                <div style="font-size:13px; color:#556;">Account Status</div>
-                <div style="font-size:14px; font-weight:600; color:#237b32;">Active Community Member</div>
-            </div>
-            <div class="sched-card">
-                <div style="font-size:13px; color:#556;">Eco-Impact Rewards</div>
-                <div style="font-size:14px; font-weight:bold; color:#205c39;">🌿 120 Eco Points</div>
-            </div>
+
+        <!-- PROFILE MODAL BODY -->
+        <div class="modal-body profile-body">
+
+            <!-- PROFILE EDIT FORM -->
+            <form
+                id="profileEditForm"
+                class="profile-form"
+                enctype="multipart/form-data"
+            >
+
+                <!-- PROFILE PICTURE SECTION -->
+                <div class="profile-header">
+
+                    <div class="profile-picture-container">
+
+                        <img
+                            id="profileImagePreview"
+                            src="images/default-avatar.png"
+                            alt="Profile Picture"
+                            class="profile-picture"
+                            onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23dcebd7%22/%3E%3Ctext x=%2250%22 y=%2268%22 font-size=%2255%22 text-anchor=%22middle%22%3E👤%3C/text%3E%3C/svg%3E';"
+                        >
+
+                        <label
+                            for="profilePictureInput"
+                            class="profile-upload-btn"
+                        >
+                             📷Change Photo
+                        </label>
+
+                        <input
+                            type="file"
+                            id="profilePictureInput"
+                            name="profile_picture"
+                            accept="image/jpeg,image/png,image/webp"
+                            hidden
+                        >
+
+                    </div>
+
+                    <!-- DISPLAY NAME -->
+                    <h2 id="profileDisplayName">
+                        <?= $name ?>
+                    </h2>
+
+                    <!-- ACCOUNT STATUS -->
+                    <span class="profile-status" style="color: #4CAF50;">
+                        ● Active Account
+                    </span>
+
+                </div>
+
+                <!-- PERSONAL INFORMATION -->
+                <div class="profile-details">
+
+                    <h3>Personal Information</h3>
+
+                    <!-- FULL NAME -->
+                    <div class="field">
+                        <label for="profileName">
+                            Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="profileName"
+                            name="full_name"
+                            value="<?= $name ?>"
+                            maxlength="100"
+                            autocomplete="name"
+                            required
+                        >
+                    </div>
+
+                    <!-- EMAIL ADDRESS -->
+                    <div class="field">
+                        <label for="profileEmail">
+                            Email Address
+                        </label>
+
+                        <input
+                            type="email"
+                            id="profileEmail"
+                            name="email"
+                            placeholder="Enter your email address"
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <!-- PHONE NUMBER -->
+                    <div class="field">
+                        <label for="profilePhone">
+                            Phone Number
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="profilePhone"
+                            name="phone"
+                            placeholder="Enter your phone number"
+                            autocomplete="tel"
+                        >
+                    </div>
+
+                    <!-- ADDRESS -->
+                    <div class="field">
+                        <label for="profileAddress">
+                            Address
+                        </label>
+
+                        <input
+                            type="text"
+                            id="profileAddress"
+                            name="address"
+                            placeholder="Enter your complete address"
+                            autocomplete="street-address"
+                        >
+                    </div>
+
+                </div>
+
+                <!-- FEEDBACK MESSAGE -->
+                <div
+                    id="profileMsg"
+                    class="form-feedback"
+                    role="status"
+                    aria-live="polite"
+                    hidden
+                ></div>
+
+                <!-- PROFILE BUTTONS -->
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        class="btn-outline"
+                        data-close-modal
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn-solid"
+                        id="profileSaveBtn"
+                    >
+                        💾 Save Changes
+                    </button>
+
+                </div>
+
+            </form>
+
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn-outline" data-close-modal>Close</button>
-            <a href="logout.php" class="btn-solid" style="background:#b53232; color:#fff; text-decoration:none; display:inline-flex; align-items:center;">Log out</a>
-        </div>
+
     </div>
 </dialog>
+
 
 <script src="config.js"></script>
 <script src="dashboard.js"></script>

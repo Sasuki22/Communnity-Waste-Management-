@@ -10,10 +10,6 @@
 }
 
 
-
-
-
-
 [data-theme="light"] .welcome {
     min-height: 260px;
     padding: 30px 55px;
@@ -3501,4 +3497,184 @@ html[data-theme="dark"] #guideModal .sched-card {
     .features {
         grid-template-columns: 1fr;
     }
+}
+
+
+/* =========================================
+   PROFILE MODAL - COMPACT LAYOUT
+========================================= */
+
+/* Paliitin ang buong Profile popup */
+#profileModal {
+    width: 340px !important;
+    max-width: 92vw !important;
+    max-height: 90vh !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    box-sizing: border-box;
+}
+
+/* Ayusin ang container */
+#profileModal .modal-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    overflow: hidden !important;
+    box-sizing: border-box;
+}
+
+/* Maliit na header */
+#profileModal .modal-header {
+    padding: 12px 14px !important;
+    flex-shrink: 0;
+}
+
+#profileModal .modal-header h2 {
+    font-size: 14px !important;
+    margin: 0;
+}
+
+/* Ayusin ang form at scrolling */
+#profileModal .modal-body {
+    padding: 14px 10px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    min-width: 0;
+}
+
+/* Compact form */
+#profileModal .profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Profile name at status */
+#profileModal #profileDisplayName {
+    font-size: 13px !important;
+    margin: 0 !important;
+    color: var(--text-heading);
+}
+
+#profileModal .profile-status {
+    font-size: 11px !important;
+    font-weight: 600;
+    color: #159447;
+}
+
+/* Personal information section */
+#profileModal .profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Labels */
+#profileModal .field label {
+    font-size: 11px !important;
+    font-weight: 500;
+}
+
+/* Input fields */
+#profileModal .field input {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 35px !important;
+    padding: 7px 10px !important;
+    border-radius: 6px !important;
+    box-sizing: border-box;
+    font-size: 12px !important;
+}
+
+/* Footer at buttons */
+#profileModal .profile-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none;
+    background: transparent;
+}
+
+#profileModal .profile-footer button {
+    font-size: 11px !important;
+    padding: 9px 12px !important;
+    border-radius: 6px;
+}
+
+/* Prevent horizontal scrolling */
+#profileModal,
+#profileModal .modal-box,
+#profileModal .profile-form,
+#profileModal .profile-details {
+    box-sizing: border-box;
+}
+
+/* BOLD PROFILE FIELD LABELS */
+
+#profileModal .field label {
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    color: var(--text-heading) !important;
+}
+
+
+/* FIX: Profile photo inside circular frame */
+.profile-picture-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    gap: 12px !important;
+}
+
+.profile-picture-container img.profile-picture,
+#profileImagePreview {
+    width: 120px !important;
+    height: 120px !important;
+    min-width: 120px !important;
+    min-height: 120px !important;
+    max-width: 120px !important;
+    max-height: 120px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+    flex: 0 0 120px !important;
+}
+
+.profile-upload-btn {
+    display: inline-block !important;
+    width: auto !important;
+    cursor: pointer;
+    text-align: center;
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+
+/* WHITE TEXT IN PROFILE MODAL - DARK MODE */
+
+html[data-theme="dark"] #profileModal .profile-upload-btn {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+html[data-theme="dark"] #profileModal .profile-details h3 {
+    color: #ffffff !important;
+    font-weight: 700 !important;
 }

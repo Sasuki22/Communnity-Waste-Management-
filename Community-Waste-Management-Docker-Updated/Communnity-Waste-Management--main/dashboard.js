@@ -13,16 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
     loadUpcomingSchedule();
     loadAnnouncements();
     setupEventListeners();
+
     const dateInput = document.getElementById("pDate");
     if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
 
-    // Profile click handler
     const profileBtn = document.getElementById("profileBtn");
-    if (profileBtn) {
-        profileBtn.addEventListener("click", () => {
-            openProfileModal();
-        });
-    }
+    if (profileBtn) profileBtn.addEventListener("click", openProfileModal);
 });
 
 async function fetchDashboardSchedules(query = {}) {
@@ -239,6 +235,7 @@ function openProfileModal() {
     closeAllModals();
     const modal = document.getElementById("profileModal");
     if (modal && !modal.open) modal.showModal();
+    loadProfile();
 }
 
 function closeAllModals() {
@@ -335,6 +332,141 @@ function setupEventListeners() {
 
     const issueForm = document.getElementById("issueForm");
     if (issueForm) issueForm.addEventListener("submit", handleIssueSubmit);
+    // PROFILE FORM
+const profileForm = document.getElementById("profileEditForm");
+
+if (profileForm) {
+    profileForm.addEventListener("submit", handleProfileSubmit);
+}
+
+// PROFILE PICTURE
+const profilePictureInput =
+    document.getElementById("profilePictureInput");
+
+if (profilePictureInput) {
+    profilePictureInput.addEventListener(
+        "change",
+        handleProfilePicturePreview
+    );
+}
+}
+
+/* =====================================
+   PROFILE PICTURE PREVIEW
+===================================== */
+
+let profilePreviewUrl = null;
+
+function handleProfilePicturePreview(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById("profileImagePreview");
+    const message = document.getElementById("profileMsg");
+
+    if (!file || !preview) {
+        console.error("Profile image input or preview is missing.");
+        return;
+    }
+
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+    if (!allowedTypes.includes(file.type) && !/\.(jpe?g|png|webp)$/i.test(file.name)) {
+        showProfileMessage(
+            "Please select a JPG, PNG, or WebP image.",
+            "error"
+        );
+        event.target.value = "";
+        return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+        showProfileMessage(
+            "Profile picture must be 2MB or smaller.",
+            "error"
+        );
+        event.target.value = "";
+        return;
+    }
+
+    if (profilePreviewUrl) {
+        URL.revokeObjectURL(profilePreviewUrl);
+    }
+
+    profilePreviewUrl = URL.createObjectURL(file);
+    preview.onerror = null;
+    preview.src = profilePreviewUrl;
+    console.log("Profile preview loaded:", file.name);
+
+    if (message) message.hidden = true;
+}
+
+/* =====================================
+   PROFILE FEEDBACK
+===================================== */
+
+function showProfileMessage(text, type) {
+    const message = document.getElementById("profileMsg");
+
+    if (!message) return;
+
+    message.hidden = false;
+    message.className = `form-feedback ${type}`;
+    message.textContent = text;
+}
+
+/* =====================================
+   PROFILE FORM SUBMISSION
+===================================== */
+
+async function loadProfile() {
+    try {
+        const response = await fetch("profile_api.php", { credentials: "same-origin", cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || "Unable to load profile.");
+        const user = data.user;
+        document.getElementById("profileName").value = user.full_name || "";
+        document.getElementById("profileEmail").value = user.email || "";
+        document.getElementById("profilePhone").value = user.phone || "";
+        document.getElementById("profileAddress").value = user.address || "";
+        document.getElementById("profileDisplayName").textContent = user.full_name || "User";
+        if (profilePreviewUrl) { URL.revokeObjectURL(profilePreviewUrl); profilePreviewUrl = null; }
+        document.getElementById("profilePictureInput").value = "";
+        document.getElementById("profileImagePreview").src = user.profile_picture || "images/default-avatar.png";
+        const msg = document.getElementById("profileMsg");
+        if (msg) msg.hidden = true;
+    } catch (error) {
+        showProfileMessage(error.message || "Unable to load profile.", "error");
+    }
+}
+
+async function handleProfileSubmit(event) {
+    event.preventDefault();
+    const button = document.getElementById("profileSaveBtn");
+    if (button) button.disabled = true;
+    try {
+        const response = await fetch("profile_api.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: new FormData(event.currentTarget),
+            headers: { Accept: "application/json" }
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || "Unable to save profile.");
+        showProfileMessage("Profile saved successfully!", "success");
+        document.getElementById("profileDisplayName").textContent = data.user.full_name;
+        const topbarName = document.querySelector("#profileBtn strong");
+        if (topbarName) topbarName.textContent = data.user.full_name;
+        if (profilePreviewUrl) { URL.revokeObjectURL(profilePreviewUrl); profilePreviewUrl = null; }
+        document.getElementById("profileImagePreview").src = data.user.profile_picture || "images/default-avatar.png";
+        document.getElementById("profilePictureInput").value = "";
+    } catch (error) {
+        showProfileMessage(error.message || "Unable to save profile.", "error");
+    } finally {
+        if (button) button.disabled = false;
+    }
 }
 
 async function handlePickupSubmit(e) {
@@ -474,4 +606,3 @@ function updateToggleIcon(btn) {
         : '<span class="toggle-icon">&#9790;</span> <span class="toggle-label">Dark</span>';
     btn.title = isDark ? "Switch to Light Mode" : "Switch to Dark Mode";
 }
-
