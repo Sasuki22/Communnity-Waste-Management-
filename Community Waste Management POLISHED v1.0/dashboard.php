@@ -10,7 +10,7 @@ $isAdmin = ($role === 'admin');
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard | Community Waste Management</title>
-<link rel="stylesheet" href="dashboard.css?v=20261016">
+<link rel="stylesheet" href="dashboard.css?v=20261022-notifications">
 <link rel="stylesheet" href="faq-assistant.css">
 <link rel="icon" type="image/png" href="images/recycleIcon.png">
 </head>
@@ -43,6 +43,10 @@ $isAdmin = ($role === 'admin');
                     ⚙️ Admin Dashboard
                 </button>
             <?php endif; ?>
+            <button type="button" class="notification-button" id="notificationBtn" aria-label="View notifications" title="Notifications">
+                <img src="images/bell-notification.svg" alt="" aria-hidden="true">
+                <span class="notification-count" id="notificationCount" hidden>0</span>
+            </button>
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle Theme">
                 <span class="toggle-icon">&#9790;</span> <span class="toggle-label">Dark</span>
             </button>
@@ -54,6 +58,10 @@ $isAdmin = ($role === 'admin');
 
         </div>
     </header>
+    <section class="notification-panel" id="notificationPanel" hidden aria-live="polite">
+        <div class="notification-panel-header"><strong>Notifications</strong><button type="button" id="closeNotifications" aria-label="Close notifications">&times;</button></div>
+        <div id="notificationsList"><p class="notifications-state">Loading notifications...</p></div>
+    </section>
     <main class="content">
 
 <section class="welcome">
@@ -185,12 +193,7 @@ $isAdmin = ($role === 'admin');
             </div>
             <div class="field">
                 <label for="pAddr" class="montFont">Address / Zone</label>
-                <div class="address-input-row">
-                    <input id="pAddr" name="address" placeholder="e.g. Block 10 Lot 5, Zone 1" required>
-                    <button type="button" class="maps-button" id="openMapsBtn" title="Open Google Maps">
-                        📍 Maps
-                    </button>
-                </div>
+                <input id="pAddr" name="address" placeholder="e.g. Block 10 Lot 5, Zone 1" required>
             </div>
             <div class="field" id="wasteTypeMargin">
                 <label for="pType" class="montFont">Waste Type</label>
@@ -533,6 +536,6 @@ $isAdmin = ($role === 'admin');
 
 
 <script src="config.js"></script>
-<script src="dashboard.js"></script>
+<script src="dashboard.js?v=20261022-notifications"></script>
 <script src="faq-assistant.js" defer></script>
 </body></html>

@@ -86,11 +86,11 @@
         delete fetchOptions.query;
 
         const response = await fetch(`${API_URL}?${params.toString()}`, fetchOptions);
+        const body = await response.text();
         let payload;
-        try {
-            payload = await response.json();
-        } catch (error) {
-            throw new Error(`The server returned an invalid response (${response.status}).`);
+        try { payload = JSON.parse(body); } catch (error) {
+            const detail = body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240);
+            throw new Error(detail || `The server returned an invalid response (${response.status}).`);
         }
         if (!response.ok || !payload.success) {
             throw new Error(payload.message || `Request failed (${response.status}).`);
@@ -162,11 +162,11 @@
     async function loadPickups() {
         const tbody = document.getElementById('pickupsTableBody');
         if (!tbody) return;
-        setLoading(tbody, 6, 'Loading pickup requests...');
+        setLoading(tbody, 7, 'Loading pickup requests...');
         try {
             renderPickups(await request('pickups'));
         } catch (error) {
-            setError(tbody, 6, error.message, loadPickups);
+            setError(tbody, 7, error.message, loadPickups);
             console.error('Unable to load pickup requests:', error);
         }
     }
@@ -175,7 +175,7 @@
         const tbody = document.getElementById('pickupsTableBody');
         if (!tbody) return;
         if (!Array.isArray(pickups) || pickups.length === 0) {
-            setEmpty(tbody, 6, 'No pickup requests found.');
+            setEmpty(tbody, 7, 'No pickup requests found.');
             return;
         }
         tbody.innerHTML = pickups.map(pickup => `
@@ -186,9 +186,40 @@
                 <td>${escapeHtml(pickup.address)}</td>
                 <td>${escapeHtml(formatDate(pickup.preferred_date))}</td>
                 <td>${renderStatusSelect('pickup', pickup.id, pickup.status, PICKUP_STATUSES)}</td>
+                <td class="notification-cell">
+                    <textarea class="pickup-message" data-message-id="${escapeHtml(pickup.id)}" rows="2" maxlength="2000" placeholder="Message to client"></textarea>
+                    <button type="button" class="btn-send-notification" data-send-notification="${escapeHtml(pickup.id)}"><img src="images/arrow-up-from-bracket-solid-full.svg" alt="" aria-hidden="true">Send</button>
+                </td>
             </tr>
         `).join('');
         bindStatusChanges(tbody, 'pickup');
+        bindNotificationButtons(tbody);
+    }
+
+    function bindNotificationButtons(tbody) {
+        tbody.querySelectorAll('[data-send-notification]').forEach(button => {
+            button.addEventListener('click', async () => {
+                const id = Number(button.dataset.sendNotification);
+                const row = button.closest('tr');
+                const status = row.querySelector('.status-select')?.value || 'Pending';
+                const messageBox = row.querySelector(`[data-message-id="${id}"]`);
+                const message = messageBox?.value.trim() || `Your pickup request status is now ${status}.`;
+                button.disabled = true;
+                try {
+                    await request('send_pickup_notification', {
+                        method: 'POST',
+                        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pickup_id: id, status, message })
+                    });
+                    if (messageBox) messageBox.value = '';
+                    window.alert('Notification sent to the client.');
+                } catch (error) {
+                    window.alert(error.message);
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
     }
 
     async function loadReports() {

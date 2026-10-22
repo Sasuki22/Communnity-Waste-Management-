@@ -14,7 +14,7 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Community Waste Management</title>
-    <link rel="stylesheet" href="admin_modern.css">
+    <link rel="stylesheet" href="admin_modern.css?v=20261022-notifications">
 </head>
 <body>
     <div class="dashboard-layout">
@@ -185,8 +185,8 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                         </div>
                         <div class="table-wrapper">
                             <table class="data-table">
-                                <thead><tr><th>ID</th><th>User</th><th>Waste Type</th><th>Location</th><th>Date</th><th>Status</th></tr></thead>
-                                <tbody id="pickupsTableBody"><tr><td colspan="6" class="loading-cell">Loading pickup requests...</td></tr></tbody>
+                                <thead><tr><th>ID</th><th>User</th><th>Waste Type</th><th>Location</th><th>Date</th><th>Status</th><th>Admin Message</th></tr></thead>
+                                <tbody id="pickupsTableBody"><tr><td colspan="7" class="loading-cell">Loading pickup requests...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -324,7 +324,7 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
             </main>
         </div>
     </div>
-    <script src="admin_modern.js"></script>
+    <script src="admin_modern.js?v=20261022-notifications"></script>
 </body>
 </html>
 

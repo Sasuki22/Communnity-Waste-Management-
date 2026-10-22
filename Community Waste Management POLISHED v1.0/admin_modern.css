@@ -426,6 +426,35 @@ body {
     border-bottom: none;
 }
 
+.notification-cell { min-width: 210px; }
+.pickup-message {
+    width: 100%;
+    min-width: 180px;
+    resize: vertical;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    padding: 7px;
+    font: inherit;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+.btn-send-notification {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    border: 0;
+    border-radius: 6px;
+    padding: 7px 14px;
+    background: #2e7d32;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 700;
+}
+.btn-send-notification img { width: 14px; height: 14px; filter: brightness(0) invert(1); }
+.btn-send-notification:hover { background: #1b5e20; }
+.btn-send-notification:disabled { opacity: .6; cursor: wait; }
+
 .loading-cell {
     text-align: center;
     padding: 40px 20px !important;

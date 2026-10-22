@@ -177,37 +177,6 @@ body {
 
 }
 
-.address-input-row {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-}
-
-.address-input-row input {
-    flex: 1;
-    min-width: 0;
-}
-
-.maps-button {
-    border: 1px solid var(--input-border);
-    border-radius: 6px;
-    padding: 0 12px;
-    background: var(--badge-bg);
-    color: var(--badge-text);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.maps-button:hover {
-    background: #237b32;
-    border-color: #237b32;
-    color: #ffffff;
-}
-
 
 
 
@@ -256,19 +225,6 @@ body {
 
 #logoAndTitle{
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-#logoAndTitle > div {
-    display: flex;
-    align-items: center;
-}
-
-#logoAndTitle h1 {
-    margin: 0;
-    line-height: 1;
 }
 
 #dashboardTitle{
@@ -344,6 +300,30 @@ body {
 .geistFont{
     font-family: Geist;
 }
+
+.notification-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+.notification-button img { width: 24px; height: 24px; object-fit: contain; }
+.notification-button:hover { border-color: var(--sidebar-active-text); transform: translateY(-1px); }
+.notification-count { position: absolute; top: -5px; right: -5px; min-width: 18px; padding: 2px 5px; border-radius: 10px; background: #d93025; color: #fff; font-size: 10px; font-weight: 700; }
+.notification-panel { position: absolute; z-index: 20; top: 76px; right: 24px; width: min(360px, calc(100vw - 32px)); max-height: 440px; overflow: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 12px; }
+.notification-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 4px 2px 10px; border-bottom: 1px solid var(--border-color); }
+.notification-panel-header button { border: 0; background: transparent; color: inherit; font-size: 22px; cursor: pointer; }
+.notification-item { padding: 12px 4px; border-bottom: 1px solid var(--border-color); }
+.notification-item p { margin: 4px 0; }
+.notification-item small, .notifications-state { color: var(--text-secondary); }
 
 .montFont{
     font-family: Mont;

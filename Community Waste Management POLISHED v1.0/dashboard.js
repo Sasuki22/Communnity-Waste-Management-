@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initThemeToggle();
     loadUpcomingSchedule();
     loadAnnouncements();
+    loadNotifications();
     setupEventListeners();
 
     const dateInput = document.getElementById("pDate");
@@ -20,15 +21,64 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileBtn = document.getElementById("profileBtn");
     if (profileBtn) profileBtn.addEventListener("click", openProfileModal);
 
-    const openMapsBtn = document.getElementById("openMapsBtn");
-    if (openMapsBtn) {
-        openMapsBtn.addEventListener("click", () => {
-            const address = document.getElementById("pAddr")?.value.trim() || "";
-            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-            window.open(mapsUrl, "_blank", "noopener,noreferrer");
-        });
-    }
+    const notificationBtn = document.getElementById("notificationBtn");
+    const notificationPanel = document.getElementById("notificationPanel");
+    notificationBtn?.addEventListener("click", () => {
+        if (!notificationPanel) return;
+        notificationPanel.hidden = !notificationPanel.hidden;
+        if (!notificationPanel.hidden) {
+            loadNotifications().then(markNotificationsAsRead);
+        }
+    });
+    document.getElementById("closeNotifications")?.addEventListener("click", () => {
+        if (notificationPanel) notificationPanel.hidden = true;
+    });
 });
+
+async function loadNotifications() {
+    const list = document.getElementById("notificationsList");
+    const button = document.getElementById("notificationBtn");
+    if (!list || !button) return;
+    try {
+        const response = await fetch(`${DASHBOARD_API}?action=notifications`, {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) throw new Error(payload.message || "Unable to load notifications.");
+        const notifications = Array.isArray(payload.data) ? payload.data : [];
+        const unread = notifications.filter(item => Number(item.is_read) === 0).length;
+        const count = document.getElementById("notificationCount");
+        if (count) { count.textContent = unread; count.hidden = unread === 0; }
+        list.innerHTML = notifications.length
+            ? notifications.map(item => `<article class="notification-item"><strong>${escapeHtml(item.status || "Pickup update")}</strong><p>${escapeHtml(item.message)}</p><small>${escapeHtml(formatAnnouncementDate(item.created_at))}</small></article>`).join("")
+            : '<p class="notifications-state">No notifications yet.</p>';
+    } catch (error) {
+        list.innerHTML = `<p class="notifications-state error">${escapeHtml(error.message)}</p>`;
+    }
+}
+
+async function markNotificationsAsRead() {
+    const count = document.getElementById("notificationCount");
+    try {
+        const response = await fetch(`${DASHBOARD_API}?action=mark_notifications_read`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.message || "Unable to mark notifications as read.");
+        }
+        if (count) {
+            count.textContent = "0";
+            count.hidden = true;
+        }
+        document.querySelectorAll(".notification-item").forEach(item => item.classList.add("read"));
+    } catch (error) {
+        console.error("Unable to mark notifications as read:", error);
+    }
+}
 
 async function fetchDashboardSchedules(query = {}) {
     const params = new URLSearchParams({ action: "schedules", ...query });
@@ -135,17 +185,6 @@ function formatAnnouncementDate(value) {
     return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
-function getScheduleIcon(item) {
-    const icons = {
-        "General Waste": "🗑️",
-        "Recyclable Waste": "♻️",
-        "Organic Waste": "🌿",
-        "Hazardous Waste": "⚠️"
-    };
-
-    return icons[item.waste_type] || item.icon || "🗑️";
-}
-
 function renderUpcomingList(items, container) {
     if (!items.length) {
         container.innerHTML = '<div class="schedule-load-error">No upcoming collection schedules have been marked by the administrator.</div>';
@@ -154,7 +193,7 @@ function renderUpcomingList(items, container) {
 
     container.innerHTML = items.map(item => `
         <div class="schedule-row clickable" data-id="${escapeHtml(item.id)}">
-            <span>${escapeHtml(getScheduleIcon(item))} ${escapeHtml(item.waste_type)}</span>
+            <span>${escapeHtml(item.icon || "🗑️")} ${escapeHtml(item.waste_type)}</span>
             <span class="badge">${escapeHtml(item.day_of_week)}</span>
         </div>
     `).join("");
@@ -193,7 +232,7 @@ function renderScheduleCards(items, container) {
     container.innerHTML = items.map(item => `
         <div class="sched-card">
             <div class="sched-card-top">
-                <span class="sched-title">${escapeHtml(getScheduleIcon(item))} ${escapeHtml(item.waste_type)}</span>
+                <span class="sched-title">${escapeHtml(item.icon || "🗑️")} ${escapeHtml(item.waste_type)}</span>
                 <span class="badge">${escapeHtml(item.day_of_week)}</span>
             </div>
             <div class="sched-timing">

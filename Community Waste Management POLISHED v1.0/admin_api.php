@@ -58,6 +58,45 @@ function ensureAnnouncementsTable(mysqli $conn): bool
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci") === true;
 }
 
+function ensureNotificationsTable(mysqli $conn): bool
+{
+    if (!$conn->query("CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        pickup_request_id INT DEFAULT NULL,
+        status VARCHAR(30) NOT NULL,
+        message TEXT NOT NULL,
+        created_by INT DEFAULT NULL,
+        is_read TINYINT(1) NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_notifications_user (user_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci")) {
+        return false;
+    }
+
+    // Older copies created this table with pickup_id and without created_by.
+    // Add the current columns when upgrading such an installation.
+    $columns = [];
+    $result = $conn->query("SHOW COLUMNS FROM notifications");
+    if ($result) {
+        while ($column = $result->fetch_assoc()) {
+            $columns[$column['Field']] = true;
+        }
+        $result->free();
+    }
+    if (!isset($columns['pickup_request_id']) && !isset($columns['pickup_id'])) {
+        if (!$conn->query("ALTER TABLE notifications ADD COLUMN pickup_request_id INT DEFAULT NULL AFTER user_id")) {
+            return false;
+        }
+    }
+    if (!isset($columns['created_by']) && !$conn->query("ALTER TABLE notifications ADD COLUMN created_by INT DEFAULT NULL AFTER message")) {
+        return false;
+    }
+    return true;
+}
+
 // Handle different actions
 switch ($action) {
     
@@ -368,6 +407,65 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Failed to update status.']);
         }
         $stmt->close();
+        break;
+
+    case 'send_pickup_notification':
+        if ($method !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
+            break;
+        }
+        if (!ensureNotificationsTable($conn)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Unable to prepare notifications.']);
+            break;
+        }
+        $pickupId = filter_var($data['pickup_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $status = trim($data['status'] ?? '');
+        $message = trim($data['message'] ?? '');
+        if (!$pickupId || !in_array($status, $pickupStatuses, true) || $message === '') {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Please provide a valid status and message.']);
+            break;
+        }
+        if (mb_strlen($message) > 2000) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'The message must be 2,000 characters or fewer.']);
+            break;
+        }
+        $lookup = $conn->prepare("SELECT user_id FROM pickup_requests WHERE id = ?");
+        $lookup->bind_param('i', $pickupId);
+        $lookup->execute();
+        $request = $lookup->get_result()->fetch_assoc();
+        $lookup->close();
+        $recipientId = (int)($request['user_id'] ?? 0);
+        if (!$recipientId) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'This pickup request is not linked to a user account.']);
+            break;
+        }
+        $notificationPickupColumn = 'pickup_request_id';
+        $columnsResult = $conn->query("SHOW COLUMNS FROM notifications");
+        if ($columnsResult) {
+            $notificationColumns = [];
+            while ($column = $columnsResult->fetch_assoc()) {
+                $notificationColumns[$column['Field']] = true;
+            }
+            $columnsResult->free();
+            if (!isset($notificationColumns['pickup_request_id']) && isset($notificationColumns['pickup_id'])) {
+                $notificationPickupColumn = 'pickup_id';
+            }
+        }
+        $stmt = $conn->prepare("INSERT INTO notifications (user_id, {$notificationPickupColumn}, status, message, created_by) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param('iissi', $recipientId, $pickupId, $status, $message, $userId);
+        $ok = $stmt->execute();
+        $stmt->close();
+        if (!$ok) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Unable to send the notification.']);
+            break;
+        }
+        echo json_encode(['success' => true, 'message' => 'Notification sent successfully.']);
         break;
     
     case 'update_issue_status':
