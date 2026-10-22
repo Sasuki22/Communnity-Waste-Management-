@@ -126,6 +126,17 @@ function formatAnnouncementDate(value) {
     return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
+function getScheduleIcon(item) {
+    const icons = {
+        "General Waste": "🗑️",
+        "Recyclable Waste": "♻️",
+        "Organic Waste": "🌿",
+        "Hazardous Waste": "⚠️"
+    };
+
+    return icons[item.waste_type] || item.icon || "🗑️";
+}
+
 function renderUpcomingList(items, container) {
     if (!items.length) {
         container.innerHTML = '<div class="schedule-load-error">No upcoming collection schedules have been marked by the administrator.</div>';
@@ -134,7 +145,7 @@ function renderUpcomingList(items, container) {
 
     container.innerHTML = items.map(item => `
         <div class="schedule-row clickable" data-id="${escapeHtml(item.id)}">
-            <span>${escapeHtml(item.icon || "🗑️")} ${escapeHtml(item.waste_type)}</span>
+            <span>${escapeHtml(getScheduleIcon(item))} ${escapeHtml(item.waste_type)}</span>
             <span class="badge">${escapeHtml(item.day_of_week)}</span>
         </div>
     `).join("");
@@ -173,7 +184,7 @@ function renderScheduleCards(items, container) {
     container.innerHTML = items.map(item => `
         <div class="sched-card">
             <div class="sched-card-top">
-                <span class="sched-title">${escapeHtml(item.icon || "🗑️")} ${escapeHtml(item.waste_type)}</span>
+                <span class="sched-title">${escapeHtml(getScheduleIcon(item))} ${escapeHtml(item.waste_type)}</span>
                 <span class="badge">${escapeHtml(item.day_of_week)}</span>
             </div>
             <div class="sched-timing">

@@ -225,6 +225,19 @@ body {
 
 #logoAndTitle{
     display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+#logoAndTitle > div {
+    display: flex;
+    align-items: center;
+}
+
+#logoAndTitle h1 {
+    margin: 0;
+    line-height: 1;
 }
 
 #dashboardTitle{
