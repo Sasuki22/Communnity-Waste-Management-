@@ -185,7 +185,12 @@ $isAdmin = ($role === 'admin');
             </div>
             <div class="field">
                 <label for="pAddr" class="montFont">Address / Zone</label>
-                <input id="pAddr" name="address" placeholder="e.g. Block 10 Lot 5, Zone 1" required>
+                <div class="address-input-row">
+                    <input id="pAddr" name="address" placeholder="e.g. Block 10 Lot 5, Zone 1" required>
+                    <button type="button" class="maps-button" id="openMapsBtn" title="Open Google Maps">
+                        📍 Maps
+                    </button>
+                </div>
             </div>
             <div class="field" id="wasteTypeMargin">
                 <label for="pType" class="montFont">Waste Type</label>

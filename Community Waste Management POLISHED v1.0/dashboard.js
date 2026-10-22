@@ -19,6 +19,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const profileBtn = document.getElementById("profileBtn");
     if (profileBtn) profileBtn.addEventListener("click", openProfileModal);
+
+    const openMapsBtn = document.getElementById("openMapsBtn");
+    if (openMapsBtn) {
+        openMapsBtn.addEventListener("click", () => {
+            const address = document.getElementById("pAddr")?.value.trim() || "";
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+            window.open(mapsUrl, "_blank", "noopener,noreferrer");
+        });
+    }
 });
 
 async function fetchDashboardSchedules(query = {}) {
