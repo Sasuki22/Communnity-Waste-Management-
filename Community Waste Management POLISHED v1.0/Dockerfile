@@ -3,7 +3,7 @@
 # Serves the existing HTML/CSS/JS/PHP frontend on port 80.
 # Host port 8080 is mapped to this container in docker-compose.yml.
 # ============================================================
-FROM php:8.2-apache
+FROM php:8.5-apache
 
 # Install the PHP extensions required to talk to MySQL
 # (mysqli is used by config.php for login/register/admin pages)
