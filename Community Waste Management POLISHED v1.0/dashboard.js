@@ -18,6 +18,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const dateInput = document.getElementById("pDate");
     if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
 
+    const addressInput = document.getElementById("pAddr");
+    const addressMapButton = document.getElementById("openAddressMap");
+    addressMapButton?.addEventListener("click", () => {
+        const address = addressInput?.value.trim() || "";
+        if (!address) {
+            addressInput?.focus();
+            const hint = document.getElementById("addressMapHint");
+            if (hint) hint.textContent = "Please enter an address or zone first.";
+            return;
+        }
+
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+        window.open(mapUrl, "_blank", "noopener,noreferrer");
+    });
+
     const profileBtn = document.getElementById("profileBtn");
     if (profileBtn) profileBtn.addEventListener("click", openProfileModal);
 
@@ -193,7 +208,7 @@ function renderUpcomingList(items, container) {
 
     container.innerHTML = items.map(item => `
         <div class="schedule-row clickable" data-id="${escapeHtml(item.id)}">
-            <span>${escapeHtml(item.icon || "🗑️")} ${escapeHtml(item.waste_type)}</span>
+            <span>${escapeHtml(getScheduleIcon(item))} ${escapeHtml(item.waste_type)}</span>
             <span class="badge">${escapeHtml(item.day_of_week)}</span>
         </div>
     `).join("");
@@ -201,6 +216,18 @@ function renderUpcomingList(items, container) {
     container.querySelectorAll(".schedule-row").forEach(row => {
         row.addEventListener("click", () => openScheduleModal(activeZone));
     });
+}
+
+function getScheduleIcon(item) {
+    const wasteType = String(item?.waste_type || '').toLowerCase();
+
+    // Derive the standard schedule symbol from the waste type. This avoids
+    // displaying legacy database values that were saved with broken UTF-8
+    // encoding, such as "ðŸŒ¿" and "âš ï¸�".
+    if (wasteType.includes('recycl')) return '\u267B\uFE0F';
+    if (wasteType.includes('organic') || wasteType.includes('garden')) return '\u{1F33F}';
+    if (wasteType.includes('hazard')) return '\u26A0\uFE0F';
+    return '\u{1F5D1}\uFE0F';
 }
 
 async function loadZoneSchedules(zone = "All Zones") {
@@ -232,7 +259,7 @@ function renderScheduleCards(items, container) {
     container.innerHTML = items.map(item => `
         <div class="sched-card">
             <div class="sched-card-top">
-                <span class="sched-title">${escapeHtml(item.icon || "🗑️")} ${escapeHtml(item.waste_type)}</span>
+                <span class="sched-title">${escapeHtml(getScheduleIcon(item))} ${escapeHtml(item.waste_type)}</span>
                 <span class="badge">${escapeHtml(item.day_of_week)}</span>
             </div>
             <div class="sched-timing">

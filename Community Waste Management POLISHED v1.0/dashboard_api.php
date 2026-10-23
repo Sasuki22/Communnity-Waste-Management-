@@ -83,6 +83,14 @@ if ($action === 'notifications') {
 }
 
 if ($action === 'mark_notifications_read') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
+        $conn->close();
+        exit;
+    }
+
     $stmt = $conn->prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0');
     if (!$stmt) {
         http_response_code(500);

@@ -183,11 +183,17 @@
                 <td>${escapeHtml(pickup.id)}</td>
                 <td>${escapeHtml(pickup.user_name)}</td>
                 <td>${escapeHtml(pickup.waste_type)}</td>
-                <td>${escapeHtml(pickup.address)}</td>
+                <td>
+                    <div class="pickup-location">${escapeHtml(pickup.address)}</div>
+                    <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pickup.address || '')}" target="_blank" rel="noopener noreferrer">
+                        <span aria-hidden="true">📍</span> Open in Google Maps
+                    </a>
+                </td>
                 <td>${escapeHtml(formatDate(pickup.preferred_date))}</td>
                 <td>${renderStatusSelect('pickup', pickup.id, pickup.status, PICKUP_STATUSES)}</td>
                 <td class="notification-cell">
-                    <textarea class="pickup-message" data-message-id="${escapeHtml(pickup.id)}" rows="2" maxlength="2000" placeholder="Message to client"></textarea>
+                    <label class="message-label" for="pickup-message-${escapeHtml(pickup.id)}">Admin message</label>
+                    <textarea id="pickup-message-${escapeHtml(pickup.id)}" class="pickup-message" data-message-id="${escapeHtml(pickup.id)}" rows="2" maxlength="2000" placeholder="Message to client"></textarea>
                     <button type="button" class="btn-send-notification" data-send-notification="${escapeHtml(pickup.id)}"><img src="images/arrow-up-from-bracket-solid-full.svg" alt="" aria-hidden="true">Send</button>
                 </td>
             </tr>

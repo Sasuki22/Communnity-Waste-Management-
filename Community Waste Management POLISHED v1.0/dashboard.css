@@ -177,6 +177,46 @@ body {
 
 }
 
+.address-map-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.address-map-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.map-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    padding: 0 13px;
+    border: 1px solid #3f7655;
+    border-radius: 8px;
+    background: #215b35;
+    color: #f4fff5;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.map-button:hover,
+.map-button:focus-visible {
+    background: #2d7c43;
+}
+
+.address-map-hint {
+    display: block;
+    margin-top: 5px;
+    color: var(--text-muted, #8da898);
+    font-size: 11px;
+}
+
 
 
 
@@ -225,16 +265,25 @@ body {
 
 #logoAndTitle{
     display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
 }
 
 #dashboardTitle{
     font-size: 30px;
     font-family: Geist;
+    line-height: 1;
+    margin: 0;
 }
 
 #dashboardLogo{
     color: #159447;
     font-size: 35px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
 
 }
 

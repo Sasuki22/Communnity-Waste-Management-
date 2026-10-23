@@ -10,7 +10,7 @@ $isAdmin = ($role === 'admin');
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard | Community Waste Management</title>
-<link rel="stylesheet" href="dashboard.css?v=20261022-notifications">
+<link rel="stylesheet" href="dashboard.css?v=20261023-header-icons-fix">
 <link rel="stylesheet" href="faq-assistant.css">
 <link rel="icon" type="image/png" href="images/recycleIcon.png">
 </head>
@@ -22,19 +22,15 @@ $isAdmin = ($role === 'admin');
             <button type="button" class="profile-info" id="profileBtn" aria-haspopup="dialog" aria-controls="profileModal">
                 <img src="images/user-solid-full.svg" alt="User" class="profile-icon">    
                 <strong><?= htmlspecialchars(ucwords(strtolower($name))) ?></strong>
-                    <?php if ($isAdmin): ?>/* the old image now lives in .welcome-scene */
+                    <?php if ($isAdmin): ?>
                     <span class="admin-badge">Admin</span>
                     <?php endif; ?>
             </button>
         </div>
 
         <div id="logoAndTitle" class="topbar-center">
-            <div>
-            <h1><strong id="dashboardLogo">♻ </strong></h1>
-            </div>
-            <div>
-            <h1 id="dashboardTitle"><i> Community Waste Management</i></h1>
-            </div>
+            <strong id="dashboardLogo" aria-hidden="true">♻</strong>
+            <h1 id="dashboardTitle"><i>Community Waste Management</i></h1>
         </div>
 
         <div class="topbar-right">
@@ -193,7 +189,14 @@ $isAdmin = ($role === 'admin');
             </div>
             <div class="field">
                 <label for="pAddr" class="montFont">Address / Zone</label>
-                <input id="pAddr" name="address" placeholder="e.g. Block 10 Lot 5, Zone 1" required>
+                <div class="address-map-row">
+                    <input id="pAddr" name="address" placeholder="e.g. Block 10 Lot 5, Zone 1" required>
+                    <button type="button" id="openAddressMap" class="map-button" title="Open this address in Google Maps">
+                        <span aria-hidden="true">📍</span>
+                        <span>Map</span>
+                    </button>
+                </div>
+                <small id="addressMapHint" class="address-map-hint">Enter your address or zone, then open it in Google Maps.</small>
             </div>
             <div class="field" id="wasteTypeMargin">
                 <label for="pType" class="montFont">Waste Type</label>
@@ -536,6 +539,6 @@ $isAdmin = ($role === 'admin');
 
 
 <script src="config.js"></script>
-<script src="dashboard.js?v=20261022-notifications"></script>
+<script src="dashboard.js?v=20261023-schedule-icons-2"></script>
 <script src="faq-assistant.js" defer></script>
 </body></html>
