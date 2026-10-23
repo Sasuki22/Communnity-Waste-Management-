@@ -10,7 +10,7 @@ $isAdmin = ($role === 'admin');
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard | Community Waste Management</title>
-<link rel="stylesheet" href="dashboard.css?v=20261016">
+<link rel="stylesheet" href="dashboard.css?v=20261023-header-icons-fix">
 <link rel="stylesheet" href="faq-assistant.css">
 <link rel="icon" type="image/png" href="images/recycleIcon.png">
 </head>
@@ -20,7 +20,15 @@ $isAdmin = ($role === 'admin');
     <header class="topbar">
         <div class="topbar-left">
             <button type="button" class="profile-info" id="profileBtn" aria-haspopup="dialog" aria-controls="profileModal">
-                <img src="images/user-solid-full.svg" alt="User" class="profile-icon">    
+              <span class="dashboard-avatar-wrapper">
+    <img
+        id="dashboardProfileImage"
+        src="images/user-solid-full.svg"
+        alt="Profile Picture"
+        class="dashboard-avatar"
+    >
+</span>
+
                 <strong><?= htmlspecialchars(ucwords(strtolower($name))) ?></strong>
                     <?php if ($isAdmin): ?>
                     <span class="admin-badge">Admin</span>
@@ -29,12 +37,8 @@ $isAdmin = ($role === 'admin');
         </div>
 
         <div id="logoAndTitle" class="topbar-center">
-            <div>
-            <h1><strong id="dashboardLogo">♻ </strong></h1>
-            </div>
-            <div>
-            <h3 id="dashboardTitle"><i> Community Waste Management</i></h3>
-            </div>
+            <strong id="dashboardLogo" aria-hidden="true">♻</strong>
+            <h1 id="dashboardTitle"><i>Community Waste Management</i></h1>
         </div>
 
         <div class="topbar-right">
@@ -43,6 +47,10 @@ $isAdmin = ($role === 'admin');
                     ⚙️ Admin Dashboard
                 </button>
             <?php endif; ?>
+            <button type="button" class="notification-button" id="notificationBtn" aria-label="View notifications" title="Notifications">
+                <img src="images/bell-notification.svg" alt="" aria-hidden="true">
+                <span class="notification-count" id="notificationCount" hidden>0</span>
+            </button>
             <button type="button" class="theme-toggle" id="themeToggle" title="Toggle Theme">
                 <span class="toggle-icon">&#9790;</span> <span class="toggle-label">Dark</span>
             </button>
@@ -54,6 +62,10 @@ $isAdmin = ($role === 'admin');
 
         </div>
     </header>
+    <section class="notification-panel" id="notificationPanel" hidden aria-live="polite">
+        <div class="notification-panel-header"><strong>Notifications</strong><button type="button" id="closeNotifications" aria-label="Close notifications">&times;</button></div>
+        <div id="notificationsList"><p class="notifications-state">Loading notifications...</p></div>
+    </section>
     <main class="content">
 
 <section class="welcome">
@@ -185,7 +197,14 @@ $isAdmin = ($role === 'admin');
             </div>
             <div class="field">
                 <label for="pAddr" class="montFont">Address / Zone</label>
-                <input id="pAddr" name="address" placeholder="e.g. Block 10 Lot 5, Zone 1" required>
+                <div class="address-map-row">
+                    <input id="pAddr" name="address" placeholder="e.g. Block 10 Lot 5, Zone 1" required>
+                    <button type="button" id="openAddressMap" class="map-button" title="Open this address in Google Maps">
+                        <span aria-hidden="true">📍</span>
+                        <span>Map</span>
+                    </button>
+                </div>
+                <small id="addressMapHint" class="address-map-hint">Enter your address or zone, then open it in Google Maps.</small>
             </div>
             <div class="field" id="wasteTypeMargin">
                 <label for="pType" class="montFont">Waste Type</label>
@@ -329,7 +348,14 @@ $isAdmin = ($role === 'admin');
 
         <!-- PROFILE MODAL HEADER -->
         <div class="modal-header">
-            <img src="images/user-solid-full.svg" alt="Profile" class="profile-icon">
+            <span class="dashboard-avatar-wrapper">
+    <img
+        id="dashboardProfileImage"
+        src="images/user-solid-full.svg"
+        alt="Profile Picture"
+        class="dashboard-avatar"
+    >
+</span>
             <h2>Edit Profile</h2>
 
             <button
@@ -363,9 +389,9 @@ $isAdmin = ($role === 'admin');
                             onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23dcebd7%22/%3E%3Ctext x=%2250%22 y=%2268%22 font-size=%2255%22 text-anchor=%22middle%22%3E👤%3C/text%3E%3C/svg%3E';"
                         >
 
-                       <label for="profilePictureInput" class="profile-upload-btn">
-                        
-    <svg xmlns="http://www.w3.org/2000/svg"
+                        <label for="profilePictureInput" class="profile-upload-btn">
+    <svg class="profile-upload-icon"
+         xmlns="http://www.w3.org/2000/svg"
          width="20"
          height="20"
          viewBox="0 0 24 24"
@@ -375,7 +401,7 @@ $isAdmin = ($role === 'admin');
          stroke-linecap="round"
          stroke-linejoin="round"
          aria-hidden="true">
-        <path d="M14.5 4h-5L7.5 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5z"/>
+        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/>
         <circle cx="12" cy="13.5" r="3.5"/>
     </svg>
     <span><u>Choose profile picture</u></span>
@@ -537,11 +563,10 @@ $isAdmin = ($role === 'admin');
     </div>
 </div>
 
-
 <?php include __DIR__ . '/faq-assistant.php'; ?>
 
 
 <script src="config.js"></script>
-<script src="dashboard.js"></script>
+<script src="dashboard.js?v=20261023-schedule-icons-2"></script>
 <script src="faq-assistant.js" defer></script>
 </body></html>

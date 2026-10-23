@@ -1,0 +1,126 @@
+# ============================================================
+# Community Waste Management System - Docker Compose
+#
+# Run from the project root:
+#   docker compose up --build -d
+#
+# Services:
+#   db         - MySQL 8 database (users, pickups, issues, announcements, schedules)
+#   phpmyadmin - Browser-based MySQL administration at http://localhost:8081
+#   web        - Apache + PHP website at http://localhost:8080
+#   api        - Flask REST API at http://localhost:5000
+#
+# Inside Docker, the PHP app and phpMyAdmin connect to MySQL using hostname "db".
+# The admin and resident schedule views use MySQL community_db.schedules.
+# ============================================================
+name: community-waste-management
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: cwms_db
+    restart: unless-stopped
+
+    ports:
+     - "127.0.0.1:3307:3306"
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-cwms_root_password}
+      MYSQL_DATABASE: ${DB_DATABASE:-community_db}
+      MYSQL_USER: ${MYSQL_USER:-cwms}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-cwms_password}
+
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/database.sql:/docker-entrypoint-initdb.d/01-database.sql:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    # MySQL is not exposed directly on the host to avoid conflicts with XAMPP.
+    networks:
+      - cwms_net
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: cwms_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80"
+
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cwms_net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cwms_web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      # Database Configuration
+      DB_HOST: db
+      DB_USERNAME: ${MYSQL_USER:-cwms}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-cwms_password}
+      DB_DATABASE: ${DB_DATABASE:-community_db}
+      
+      #Resend Email Configuration
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
+
+      # Password Reset Link
+      APP_URL: http://localhost:8080
+
+    volumes:
+      - .:/var/www/html
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - cwms_net
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cwms_api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: 5000
+      FLASK_DEBUG: "False"
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-change_me_in_production}
+      DATABASE_PATH: /app/data/community_waste.db
+    volumes:
+      - sqlite_data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/api/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    networks:
+      - cwms_net
+
+volumes:
+  db_data:
+  sqlite_data:
+
+networks:
+  cwms_net:
+    driver: bridge

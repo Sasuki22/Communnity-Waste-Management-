@@ -10,16 +10,91 @@ let activeZone = "All Zones";
 
 document.addEventListener("DOMContentLoaded", () => {
     initThemeToggle();
-    loadUpcomingSchedule();
+loadDashboardProfilePicture();
+loadUpcomingSchedule();
     loadAnnouncements();
+    loadNotifications();
     setupEventListeners();
 
     const dateInput = document.getElementById("pDate");
     if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
 
+    const addressInput = document.getElementById("pAddr");
+    const addressMapButton = document.getElementById("openAddressMap");
+    addressMapButton?.addEventListener("click", () => {
+        const address = addressInput?.value.trim() || "";
+        if (!address) {
+            addressInput?.focus();
+            const hint = document.getElementById("addressMapHint");
+            if (hint) hint.textContent = "Please enter an address or zone first.";
+            return;
+        }
+
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+        window.open(mapUrl, "_blank", "noopener,noreferrer");
+    });
+
     const profileBtn = document.getElementById("profileBtn");
     if (profileBtn) profileBtn.addEventListener("click", openProfileModal);
+
+    const notificationBtn = document.getElementById("notificationBtn");
+    const notificationPanel = document.getElementById("notificationPanel");
+    notificationBtn?.addEventListener("click", () => {
+        if (!notificationPanel) return;
+        notificationPanel.hidden = !notificationPanel.hidden;
+        if (!notificationPanel.hidden) {
+            loadNotifications().then(markNotificationsAsRead);
+        }
+    });
+    document.getElementById("closeNotifications")?.addEventListener("click", () => {
+        if (notificationPanel) notificationPanel.hidden = true;
+    });
 });
+
+async function loadNotifications() {
+    const list = document.getElementById("notificationsList");
+    const button = document.getElementById("notificationBtn");
+    if (!list || !button) return;
+    try {
+        const response = await fetch(`${DASHBOARD_API}?action=notifications`, {
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) throw new Error(payload.message || "Unable to load notifications.");
+        const notifications = Array.isArray(payload.data) ? payload.data : [];
+        const unread = notifications.filter(item => Number(item.is_read) === 0).length;
+        const count = document.getElementById("notificationCount");
+        if (count) { count.textContent = unread; count.hidden = unread === 0; }
+        list.innerHTML = notifications.length
+            ? notifications.map(item => `<article class="notification-item"><strong>${escapeHtml(item.status || "Pickup update")}</strong><p>${escapeHtml(item.message)}</p><small>${escapeHtml(formatAnnouncementDate(item.created_at))}</small></article>`).join("")
+            : '<p class="notifications-state">No notifications yet.</p>';
+    } catch (error) {
+        list.innerHTML = `<p class="notifications-state error">${escapeHtml(error.message)}</p>`;
+    }
+}
+
+async function markNotificationsAsRead() {
+    const count = document.getElementById("notificationCount");
+    try {
+        const response = await fetch(`${DASHBOARD_API}?action=mark_notifications_read`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.message || "Unable to mark notifications as read.");
+        }
+        if (count) {
+            count.textContent = "0";
+            count.hidden = true;
+        }
+        document.querySelectorAll(".notification-item").forEach(item => item.classList.add("read"));
+    } catch (error) {
+        console.error("Unable to mark notifications as read:", error);
+    }
+}
 
 async function fetchDashboardSchedules(query = {}) {
     const params = new URLSearchParams({ action: "schedules", ...query });
@@ -134,7 +209,7 @@ function renderUpcomingList(items, container) {
 
     container.innerHTML = items.map(item => `
         <div class="schedule-row clickable" data-id="${escapeHtml(item.id)}">
-            <span>${escapeHtml(item.icon || "🗑️")} ${escapeHtml(item.waste_type)}</span>
+            <span>${escapeHtml(getScheduleIcon(item))} ${escapeHtml(item.waste_type)}</span>
             <span class="badge">${escapeHtml(item.day_of_week)}</span>
         </div>
     `).join("");
@@ -142,6 +217,18 @@ function renderUpcomingList(items, container) {
     container.querySelectorAll(".schedule-row").forEach(row => {
         row.addEventListener("click", () => openScheduleModal(activeZone));
     });
+}
+
+function getScheduleIcon(item) {
+    const wasteType = String(item?.waste_type || '').toLowerCase();
+
+    // Derive the standard schedule symbol from the waste type. This avoids
+    // displaying legacy database values that were saved with broken UTF-8
+    // encoding, such as "ðŸŒ¿" and "âš ï¸�".
+    if (wasteType.includes('recycl')) return '\u267B\uFE0F';
+    if (wasteType.includes('organic') || wasteType.includes('garden')) return '\u{1F33F}';
+    if (wasteType.includes('hazard')) return '\u26A0\uFE0F';
+    return '\u{1F5D1}\uFE0F';
 }
 
 async function loadZoneSchedules(zone = "All Zones") {
@@ -173,7 +260,7 @@ function renderScheduleCards(items, container) {
     container.innerHTML = items.map(item => `
         <div class="sched-card">
             <div class="sched-card-top">
-                <span class="sched-title">${escapeHtml(item.icon || "🗑️")} ${escapeHtml(item.waste_type)}</span>
+                <span class="sched-title">${escapeHtml(getScheduleIcon(item))} ${escapeHtml(item.waste_type)}</span>
                 <span class="badge">${escapeHtml(item.day_of_week)}</span>
             </div>
             <div class="sched-timing">
@@ -435,6 +522,13 @@ async function loadProfile() {
         if (profilePreviewUrl) { URL.revokeObjectURL(profilePreviewUrl); profilePreviewUrl = null; }
         document.getElementById("profilePictureInput").value = "";
         document.getElementById("profileImagePreview").src = user.profile_picture || "images/default-avatar.png";
+        // Update profile picture sa Dashboard
+const dashboardAvatar = document.getElementById("dashboardProfileImage");
+
+if (dashboardAvatar) {
+    dashboardAvatar.src =
+        user.profile_picture || "images/user-solid-full.svg";
+}
         const msg = document.getElementById("profileMsg");
         if (msg) msg.hidden = true;
     } catch (error) {
@@ -644,3 +738,29 @@ function updateToggleIcon(btn) {
             }
         });
     });
+
+    async function loadDashboardProfilePicture() {
+    const avatar = document.getElementById("dashboardProfileImage");
+    if (!avatar) return;
+
+    try {
+        const response = await fetch("profile_api.php", {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to load profile.");
+        }
+
+        avatar.src =
+            data.user?.profile_picture ||
+            "images/user-solid-full.svg";
+
+    } catch (error) {
+        console.error("Dashboard profile picture error:", error);
+        avatar.src = "images/user-solid-full.svg";
+    }
+}
