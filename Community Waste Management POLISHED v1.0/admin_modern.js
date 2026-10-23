@@ -1,6 +1,16 @@
 /* Modern admin dashboard interactions. */
 (() => {
     'use strict';
+      
+     // SYNC DARK / LIGHT MODE
+function initAdminTheme() {
+    const savedTheme = localStorage.getItem("cwm-theme");
+
+    document.documentElement.setAttribute(
+        "data-theme",
+        savedTheme === "dark" ? "dark" : "light"
+    );
+}
 
     const API_URL = 'admin_api.php';
     const TAB_NAMES = ['dashboard', 'users', 'pickups', 'reports', 'schedules', 'announcements'];
@@ -10,6 +20,7 @@
     let editingScheduleId = null;
 
     document.addEventListener('DOMContentLoaded', () => {
+        initAdminTheme();
         initNavigation();
         loadSummary();
         loadUsers();
@@ -86,11 +97,11 @@
         delete fetchOptions.query;
 
         const response = await fetch(`${API_URL}?${params.toString()}`, fetchOptions);
-        const body = await response.text();
         let payload;
-        try { payload = JSON.parse(body); } catch (error) {
-            const detail = body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240);
-            throw new Error(detail || `The server returned an invalid response (${response.status}).`);
+        try {
+            payload = await response.json();
+        } catch (error) {
+            throw new Error(`The server returned an invalid response (${response.status}).`);
         }
         if (!response.ok || !payload.success) {
             throw new Error(payload.message || `Request failed (${response.status}).`);
@@ -162,11 +173,11 @@
     async function loadPickups() {
         const tbody = document.getElementById('pickupsTableBody');
         if (!tbody) return;
-        setLoading(tbody, 7, 'Loading pickup requests...');
+        setLoading(tbody, 6, 'Loading pickup requests...');
         try {
             renderPickups(await request('pickups'));
         } catch (error) {
-            setError(tbody, 7, error.message, loadPickups);
+            setError(tbody, 6, error.message, loadPickups);
             console.error('Unable to load pickup requests:', error);
         }
     }
@@ -175,7 +186,7 @@
         const tbody = document.getElementById('pickupsTableBody');
         if (!tbody) return;
         if (!Array.isArray(pickups) || pickups.length === 0) {
-            setEmpty(tbody, 7, 'No pickup requests found.');
+            setEmpty(tbody, 6, 'No pickup requests found.');
             return;
         }
         tbody.innerHTML = pickups.map(pickup => `
@@ -183,49 +194,12 @@
                 <td>${escapeHtml(pickup.id)}</td>
                 <td>${escapeHtml(pickup.user_name)}</td>
                 <td>${escapeHtml(pickup.waste_type)}</td>
-                <td>
-                    <div class="pickup-location">${escapeHtml(pickup.address)}</div>
-                    <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pickup.address || '')}" target="_blank" rel="noopener noreferrer">
-                        <span aria-hidden="true">📍</span> Open in Google Maps
-                    </a>
-                </td>
+                <td>${escapeHtml(pickup.address)}</td>
                 <td>${escapeHtml(formatDate(pickup.preferred_date))}</td>
                 <td>${renderStatusSelect('pickup', pickup.id, pickup.status, PICKUP_STATUSES)}</td>
-                <td class="notification-cell">
-                    <label class="message-label" for="pickup-message-${escapeHtml(pickup.id)}">Admin message</label>
-                    <textarea id="pickup-message-${escapeHtml(pickup.id)}" class="pickup-message" data-message-id="${escapeHtml(pickup.id)}" rows="2" maxlength="2000" placeholder="Message to client"></textarea>
-                    <button type="button" class="btn-send-notification" data-send-notification="${escapeHtml(pickup.id)}"><img src="images/arrow-up-from-bracket-solid-full.svg" alt="" aria-hidden="true">Send</button>
-                </td>
             </tr>
         `).join('');
         bindStatusChanges(tbody, 'pickup');
-        bindNotificationButtons(tbody);
-    }
-
-    function bindNotificationButtons(tbody) {
-        tbody.querySelectorAll('[data-send-notification]').forEach(button => {
-            button.addEventListener('click', async () => {
-                const id = Number(button.dataset.sendNotification);
-                const row = button.closest('tr');
-                const status = row.querySelector('.status-select')?.value || 'Pending';
-                const messageBox = row.querySelector(`[data-message-id="${id}"]`);
-                const message = messageBox?.value.trim() || `Your pickup request status is now ${status}.`;
-                button.disabled = true;
-                try {
-                    await request('send_pickup_notification', {
-                        method: 'POST',
-                        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pickup_id: id, status, message })
-                    });
-                    if (messageBox) messageBox.value = '';
-                    window.alert('Notification sent to the client.');
-                } catch (error) {
-                    window.alert(error.message);
-                } finally {
-                    button.disabled = false;
-                }
-            });
-        });
     }
 
     async function loadReports() {
@@ -593,3 +567,5 @@
     window.loadSchedules = loadSchedules;
     window.loadAnnouncements = loadAnnouncements;
 })();
+
+
