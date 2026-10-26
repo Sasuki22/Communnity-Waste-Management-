@@ -4114,92 +4114,89 @@ html[data-theme="dark"] #profileModal .profile-details h3 {
     font-weight: 700 !important;
 }
 
-/* Dashboard Profile Picture */
-.profile-info .dashboard-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    display: block;
+/* Admin identity header: gear icon and aligned name/role. */
+#profileBtn.profile-info {
+    min-width: 0;
+    padding: 6px 8px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: none !important;
 }
 
-/* DASHBOARD HEADER CIRCULAR AVATAR */
+#profileBtn.profile-info:hover,
+#profileBtn.profile-info:focus-visible {
+    background: var(--sidebar-hover) !important;
+}
 
-.profile-info .dashboard-avatar-wrapper {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px;
-    min-height: 36px;
-    border-radius: 50% !important;
-    overflow: hidden !important;
+#profileBtn .dashboard-avatar-wrapper {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
 }
 
-.profile-info .dashboard-avatar-wrapper img {
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 50% !important;
-    object-fit: cover !important;
+#profileBtn #dashboardProfileImage,
+#profileBtn .dashboard-avatar {
+    width: 52px !important;
+    height: 52px !important;
+    border-radius: 0 !important;
+    object-fit: contain !important;
     object-position: center;
     display: block !important;
 }
 
-/* Dashboard profile picture - circular */
+#profileBtn .profile-identity {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1;
+}
 
-#profileBtn .dashboard-avatar-wrapper {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    border-radius: 50%;
+#profileBtn .profile-name {
+    display: block;
+    max-width: 150px;
     overflow: hidden;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#profileBtn .admin-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    margin: 0;
+    padding: 3px 9px;
+    line-height: 1;
+    white-space: nowrap;
 }
 
-#profileBtn #dashboardProfileImage {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    display: block;
-}
+@media (max-width: 480px) {
+    #profileBtn .dashboard-avatar-wrapper,
+    #profileBtn #dashboardProfileImage,
+    #profileBtn .dashboard-avatar {
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        min-height: 42px !important;
+    }
 
-/* Profile button - remove oval border */
-#profileBtn.profile-info {
-    border: none !important;
-    background: transparent !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: none !important;
-}
-
-/* Profile picture - circular border */
-#profileBtn .dashboard-avatar-wrapper {
-    width: 90px !important;
-    height: 90px !important;
-    min-width: 90px !important;
-    min-height: 90px !important;
-    border: 3px solid #a8cfb1 !important;
-    border-radius: 50% !important;
-    overflow: hidden !important;
-    flex-shrink: 0;
-    box-sizing: border-box;
-}
-
-/* Image inside the circle */
-#profileBtn #dashboardProfileImage {
-    width: 100% !important;
-    height: 100% !important;
-    border-radius: 50% !important;
-    object-fit: cover !important;
-    display: block;
+    #profileBtn .profile-name {
+        max-width: 90px;
+    }
 }
