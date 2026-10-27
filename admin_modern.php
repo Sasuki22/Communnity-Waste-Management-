@@ -26,7 +26,7 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
         })();
     </script>
 
-    <link rel="stylesheet" href="admin_modern.css?v=20261027-notifications">
+    <link rel="stylesheet" href="admin_modern.css?v=20261027-contact-inbox">
 </head>
 <body>
     <div class="dashboard-layout">
@@ -72,6 +72,10 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                 <a href="#announcements" class="nav-link" data-tab="announcements">
                     <span class="nav-icon">📢</span>
                     <span class="nav-label">Announcements</span>
+                </a>
+                <a href="#contact" class="nav-link" data-tab="contact">
+                    <span class="nav-icon">✉️</span>
+                    <span class="nav-label">Contact</span>
                 </a>
             </nav>
 
@@ -348,11 +352,27 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                     </div>
                 </div>
 
+                <!-- Contact Messages Tab -->
+                <div id="contact" class="tab-section">
+                    <div class="content-section">
+                        <div class="section-header">
+                            <div class="section-info">
+                                <h3 class="section-title">Contact Messages</h3>
+                                <p class="section-subtitle">Messages submitted through the public contact form</p>
+                            </div>
+                            <button type="button" class="btn-refresh" id="refreshContactMessages">Refresh</button>
+                        </div>
+                        <div id="contactMessagesList" class="contact-messages-list" aria-live="polite">
+                            <p class="loading-cell">Loading contact messages...</p>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
 
-    <script src="admin_modern.js?v=20261027-notifications"></script>
+    <script src="admin_modern.js?v=20261027-contact-inbox"></script>
 </body>
 </html>
 

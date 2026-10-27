@@ -13,7 +13,7 @@ function initAdminTheme() {
 }
 
     const API_URL = 'admin_api.php';
-    const TAB_NAMES = ['dashboard', 'users', 'pickups', 'reports', 'schedules', 'announcements'];
+    const TAB_NAMES = ['dashboard', 'users', 'pickups', 'reports', 'schedules', 'announcements', 'contact'];
     const PICKUP_STATUSES = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
     const ISSUE_STATUSES = ['Open', 'In Progress', 'Resolved', 'Closed'];
     let scheduleCache = [];
@@ -30,6 +30,7 @@ function initAdminTheme() {
         loadAnnouncements();
         initAnnouncements();
         initSchedules();
+        document.getElementById('refreshContactMessages')?.addEventListener('click', loadContactMessages);
     });
 
     function initNavigation() {
@@ -74,7 +75,8 @@ function initAdminTheme() {
             pickups: loadPickups,
             reports: loadReports,
             schedules: loadSchedules,
-            announcements: loadAnnouncements
+            announcements: loadAnnouncements,
+            contact: loadContactMessages
         };
         if (loaders[tab]) loaders[tab]();
     }
@@ -376,6 +378,32 @@ function initAdminTheme() {
             list.innerHTML = `<p class="loading-cell error-cell">${escapeHtml(error.message)} <button type="button" class="inline-retry" data-retry>Retry</button></p>`;
             list.querySelector('[data-retry]')?.addEventListener('click', loadAnnouncements);
             console.error('Unable to load announcements:', error);
+        }
+    }
+
+    async function loadContactMessages() {
+        const list = document.getElementById('contactMessagesList');
+        if (!list) return;
+        list.innerHTML = '<p class="loading-cell">Loading contact messages...</p>';
+        try {
+            const messages = await request('contact_messages');
+            if (!messages.length) {
+                list.innerHTML = '<p class="loading-cell">No contact messages yet.</p>';
+                return;
+            }
+            list.innerHTML = messages.map(item => `
+                <article class="contact-card">
+                    <div class="contact-card-header">
+                        <strong>${escapeHtml(item.name)}</strong>
+                        <time>${escapeHtml(item.created_at || '')}</time>
+                    </div>
+                    <a href="mailto:${escapeHtml(item.email)}">${escapeHtml(item.email)}</a>
+                    <p>${escapeHtml(item.message).replace(/\n/g, '<br>')}</p>
+                </article>
+            `).join('');
+        } catch (error) {
+            list.innerHTML = `<p class="loading-cell error-cell">${escapeHtml(error.message)} <button type="button" class="inline-retry" id="retryContactMessages">Retry</button></p>`;
+            document.getElementById('retryContactMessages')?.addEventListener('click', loadContactMessages);
         }
     }
 

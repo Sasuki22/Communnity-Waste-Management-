@@ -810,6 +810,42 @@ body {
     }
 }
 
+/* Admin contact inbox */
+.contact-messages-list {
+    display: grid;
+    gap: 14px;
+}
+
+.contact-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #c8e6c9;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #243328;
+    overflow-wrap: anywhere;
+}
+
+.contact-card-header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.contact-card-header time { color: #526457; font-size: 13px; }
+.contact-card a { color: #236d32; }
+.contact-card p { margin-top: 12px; }
+
+html[data-theme="dark"] .contact-card {
+    background: #294535;
+    border-color: #45614e;
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .contact-card-header time { color: #b9d4c2; }
+html[data-theme="dark"] .contact-card a { color: #a0edaf; }
+
 /* ADMIN DASHBOARD DARK MODE */
 
 html[data-theme="dark"] {

@@ -320,6 +320,24 @@ switch ($action) {
         echo json_encode(['success' => true, 'data' => $announcements]);
         break;
 
+    case 'contact_messages':
+        if ($method !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
+            break;
+        }
+        $result = $conn->query('SELECT id, name, email, message, created_at FROM contact_messages ORDER BY created_at DESC, id DESC LIMIT 200');
+        if (!$result) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Unable to load contact messages.']);
+            break;
+        }
+        $messages = [];
+        while ($row = $result->fetch_assoc()) $messages[] = $row;
+        echo json_encode(['success' => true, 'data' => $messages]);
+        break;
+
     case 'create_announcement':
         $title = trim($data['title'] ?? '');
         $message = trim($data['message'] ?? '');
