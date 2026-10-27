@@ -10,7 +10,7 @@ $isAdmin = ($role === 'admin');
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard | Community Waste Management</title>
-<link rel="stylesheet" href="dashboard.css?v=20261026-admin-identity-fix">
+<link rel="stylesheet" href="dashboard.css?v=20261023-header-icons-fix">
 <link rel="stylesheet" href="faq-assistant.css">
 <link rel="icon" type="image/png" href="images/recycleIcon.png">
 </head>
@@ -20,20 +20,19 @@ $isAdmin = ($role === 'admin');
     <header class="topbar">
         <div class="topbar-left">
             <button type="button" class="profile-info" id="profileBtn" aria-haspopup="dialog" aria-controls="profileModal">
-                <span class="dashboard-avatar-wrapper" aria-hidden="true">
-                    <img
-                        id="dashboardProfileImage"
-                        src="<?= $isAdmin ? 'images/admin-gear-user.svg' : 'images/user-solid-full.svg' ?>"
-                        alt=""
-                        class="dashboard-avatar"
-                    >
-                </span>
-                <span class="profile-identity">
-                    <strong class="profile-name"><?= htmlspecialchars(ucwords(strtolower($name))) ?></strong>
+              <span class="dashboard-avatar-wrapper">
+    <img
+        id="dashboardProfileImage"
+        src="images/user-solid-full.svg"
+        alt="Profile Picture"
+        class="dashboard-avatar"
+    >
+</span>
+
+                <strong><?= htmlspecialchars(ucwords(strtolower($name))) ?></strong>
                     <?php if ($isAdmin): ?>
-                        <span class="admin-badge">Admin</span>
+                    <span class="admin-badge">Admin</span>
                     <?php endif; ?>
-                </span>
             </button>
         </div>
 
@@ -350,13 +349,13 @@ $isAdmin = ($role === 'admin');
         <!-- PROFILE MODAL HEADER -->
         <div class="modal-header">
             <span class="dashboard-avatar-wrapper">
-                <img
-                    id="profileModalIcon"
-                    src="<?= $isAdmin ? 'images/admin-gear-user.svg' : 'images/user-solid-full.svg' ?>"
-                    alt="Profile"
-                    class="dashboard-avatar"
-                >
-            </span>
+    <img
+        id="dashboardProfileImage"
+        src="images/user-solid-full.svg"
+        alt="Profile Picture"
+        class="dashboard-avatar"
+    >
+</span>
             <h2>Edit Profile</h2>
 
             <button
