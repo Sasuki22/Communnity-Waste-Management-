@@ -230,6 +230,32 @@ function closeAllModals() {
 }
 
 function setupEventListeners() {
+    const logoutButton = document.getElementById("logoutBtn");
+    const logoutModal = document.getElementById("logoutModal");
+    const cancelLogout = document.getElementById("cancelLogout");
+
+    function closeLogoutModal() {
+        logoutModal.classList.remove("show");
+        logoutModal.setAttribute("aria-hidden", "true");
+        logoutButton.focus();
+    }
+
+    if (logoutButton && logoutModal && cancelLogout) {
+        logoutButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            logoutModal.classList.add("show");
+            logoutModal.setAttribute("aria-hidden", "false");
+            cancelLogout.focus();
+        });
+        cancelLogout.addEventListener("click", closeLogoutModal);
+        logoutModal.addEventListener("click", (e) => {
+            if (e.target === logoutModal) closeLogoutModal();
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && logoutModal.classList.contains("show")) closeLogoutModal();
+        });
+    }
+
     // Global delegated click handler for all interactive elements
     document.addEventListener("click", (e) => {
         const schedTrigger = e.target.closest("[data-open-schedule]");

@@ -1,4 +1,4 @@
- <?php
+<?php
 session_start();
 if (!isset($_SESSION['user_id'])) { header('Location: index.php'); exit; }
 $name = htmlspecialchars($_SESSION['user_name'] ?? 'User', ENT_QUOTES, 'UTF-8');
@@ -10,7 +10,7 @@ $isAdmin = ($role === 'admin');
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard | Community Waste Management</title>
-<link rel="stylesheet" href="dashboard.css?v=20261023-header-icons-fix">
+<link rel="stylesheet" href="dashboard.css?v=20261027-admin-icon-only">
 <link rel="stylesheet" href="faq-assistant.css">
 <link rel="icon" type="image/png" href="images/recycleIcon.png">
 </head>
@@ -23,7 +23,7 @@ $isAdmin = ($role === 'admin');
               <span class="dashboard-avatar-wrapper">
     <img
         id="dashboardProfileImage"
-        src="images/user-solid-full.svg"
+        src="<?= $isAdmin ? 'images/admin-gear-user.svg' : 'images/user-solid-full.svg' ?>"
         alt="Profile Picture"
         class="dashboard-avatar"
     >
@@ -43,8 +43,8 @@ $isAdmin = ($role === 'admin');
 
         <div class="topbar-right">
             <?php if ($isAdmin): ?>
-                <button type="button" class="admin-btn" onclick="window.location.href='admin_modern.php'">
-                    ⚙️ Admin Dashboard
+                <button type="button" class="admin-btn" aria-label="Open admin dashboard" title="Admin Dashboard" onclick="window.location.href='admin_modern.php'">
+                    <img src="images/admin-gear-user.svg" alt="" aria-hidden="true">
                 </button>
             <?php endif; ?>
             <button type="button" class="notification-button" id="notificationBtn" aria-label="View notifications" title="Notifications">
@@ -351,7 +351,7 @@ $isAdmin = ($role === 'admin');
             <span class="dashboard-avatar-wrapper">
     <img
         id="dashboardProfileImage"
-        src="images/user-solid-full.svg"
+        src="<?= $isAdmin ? 'images/admin-gear-user.svg' : 'images/user-solid-full.svg' ?>"
         alt="Profile Picture"
         class="dashboard-avatar"
     >
@@ -567,6 +567,6 @@ $isAdmin = ($role === 'admin');
 
 
 <script src="config.js"></script>
-<script src="dashboard.js?v=20261023-schedule-icons-2"></script>
+<script src="dashboard.js?v=20261027-logout-fix"></script>
 <script src="faq-assistant.js" defer></script>
 </body></html>

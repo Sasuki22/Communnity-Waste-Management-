@@ -2777,6 +2777,26 @@ body {
 
 }
 
+.admin-btn img {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    object-fit: contain;
+}
+
+.admin-btn {
+    width: 48px;
+    height: 48px;
+    padding: 6px;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.admin-btn:focus-visible {
+    outline: 2px solid #237b32;
+    outline-offset: 2px;
+}
+
 
 
 
