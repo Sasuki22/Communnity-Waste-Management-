@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initThemeToggle();
     loadUpcomingSchedule();
     loadAnnouncements();
+    initNotifications();
     setupEventListeners();
     const dateInput = document.getElementById("pDate");
     if (dateInput) dateInput.min = new Date().toISOString().split("T")[0];
@@ -33,6 +34,65 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+function initNotifications() {
+    const button = document.getElementById('notificationBtn');
+    const panel = document.getElementById('notificationPanel');
+    const list = document.getElementById('notificationsList');
+    const badge = document.getElementById('notificationCount');
+    const close = document.getElementById('closeNotifications');
+    if (!button || !panel || !list || !badge || !close) return;
+
+    async function refresh() {
+        try {
+            const response = await fetch(`${DASHBOARD_API}?action=notifications`, {
+                credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' }
+            });
+            const payload = await response.json();
+            if (!response.ok || !payload.success) throw new Error(payload.message || 'Unable to load notifications.');
+            const items = payload.data || [];
+            const unread = items.filter(item => Number(item.is_read) === 0).length;
+            badge.textContent = unread > 20 ? '20+' : String(unread);
+            badge.hidden = unread === 0;
+            list.innerHTML = items.length ? items.map(item => `
+                <article class="notification-item">
+                    <strong>${escapeHtml(item.pickup_request_id ? 'Pickup update' : 'Waste report update')} · ${escapeHtml(item.status)}</strong>
+                    <p>${escapeHtml(item.message).replace(/\n/g, '<br>')}</p>
+                    <small>${escapeHtml(item.created_at || '')}</small>
+                </article>`).join('') : '<p class="notifications-state">No notifications yet.</p>';
+        } catch (error) {
+            if (!panel.hidden) list.innerHTML = '<p class="notifications-state">Unable to load notifications. Please try again.</p>';
+            console.error('Unable to load notifications:', error);
+        }
+    }
+
+    button.addEventListener('click', async () => {
+        panel.hidden = !panel.hidden;
+        button.setAttribute('aria-expanded', String(!panel.hidden));
+        if (panel.hidden) return;
+        list.innerHTML = '<p class="notifications-state">Loading notifications...</p>';
+        await refresh();
+        if (panel.hidden || badge.hidden) return;
+        try {
+            const response = await fetch(`${DASHBOARD_API}?action=mark_notifications_read`, {
+                method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' }
+            });
+            const payload = await response.json();
+            if (!response.ok || !payload.success) throw new Error(payload.message || 'Unable to mark notifications as read.');
+            badge.hidden = true;
+        } catch (error) {
+            console.error('Unable to mark notifications as read:', error);
+        }
+    });
+    close.addEventListener('click', () => {
+        panel.hidden = true;
+        button.setAttribute('aria-expanded', 'false');
+        button.focus();
+    });
+    refresh();
+    // Refresh the count when residents return to this tab after an admin sends an update.
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+}
 
 async function loadUpcomingSchedule() {
     const container = document.getElementById("upcomingScheduleList");

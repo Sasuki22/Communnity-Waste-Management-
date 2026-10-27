@@ -1,7 +1,7 @@
 /* Modern admin dashboard interactions. */
 (() => {
     'use strict';
-      
+
      // SYNC DARK / LIGHT MODE
 function initAdminTheme() {
     const savedTheme = localStorage.getItem("cwm-theme");
@@ -173,11 +173,11 @@ function initAdminTheme() {
     async function loadPickups() {
         const tbody = document.getElementById('pickupsTableBody');
         if (!tbody) return;
-        setLoading(tbody, 6, 'Loading pickup requests...');
+        setLoading(tbody, 7, 'Loading pickup requests...');
         try {
             renderPickups(await request('pickups'));
         } catch (error) {
-            setError(tbody, 6, error.message, loadPickups);
+            setError(tbody, 7, error.message, loadPickups);
             console.error('Unable to load pickup requests:', error);
         }
     }
@@ -186,7 +186,7 @@ function initAdminTheme() {
         const tbody = document.getElementById('pickupsTableBody');
         if (!tbody) return;
         if (!Array.isArray(pickups) || pickups.length === 0) {
-            setEmpty(tbody, 6, 'No pickup requests found.');
+            setEmpty(tbody, 7, 'No pickup requests found.');
             return;
         }
         tbody.innerHTML = pickups.map(pickup => `
@@ -197,19 +197,21 @@ function initAdminTheme() {
                 <td>${escapeHtml(pickup.address)}</td>
                 <td>${escapeHtml(formatDate(pickup.preferred_date))}</td>
                 <td>${renderStatusSelect('pickup', pickup.id, pickup.status, PICKUP_STATUSES)}</td>
+                <td>${renderMessageControl('pickup', pickup)}</td>
             </tr>
         `).join('');
         bindStatusChanges(tbody, 'pickup');
+        bindMessageActions(tbody, 'pickup');
     }
 
     async function loadReports() {
         const tbody = document.getElementById('reportsTableBody');
         if (!tbody) return;
-        setLoading(tbody, 5, 'Loading waste reports...');
+        setLoading(tbody, 6, 'Loading waste reports...');
         try {
             renderReports(await request('issues'));
         } catch (error) {
-            setError(tbody, 5, error.message, loadReports);
+            setError(tbody, 6, error.message, loadReports);
             console.error('Unable to load waste reports:', error);
         }
     }
@@ -218,7 +220,7 @@ function initAdminTheme() {
         const tbody = document.getElementById('reportsTableBody');
         if (!tbody) return;
         if (!Array.isArray(reports) || reports.length === 0) {
-            setEmpty(tbody, 5, 'No waste reports found.');
+            setEmpty(tbody, 6, 'No waste reports found.');
             return;
         }
         tbody.innerHTML = reports.map(report => `
@@ -228,9 +230,61 @@ function initAdminTheme() {
                 <td>${escapeHtml(report.location)}</td>
                 <td>${escapeHtml(report.description || '—')}</td>
                 <td>${renderStatusSelect('issue', report.id, report.status, ISSUE_STATUSES)}</td>
+                <td>${renderMessageControl('issue', report)}</td>
             </tr>
         `).join('');
         bindStatusChanges(tbody, 'issue');
+        bindMessageActions(tbody, 'issue');
+    }
+
+    function renderMessageControl(entity, item) {
+        if (!Number(item.user_id)) return '<span class="table-note">No linked resident account</span>';
+        return `<div class="admin-message-control" data-message-entity="${entity}" data-id="${escapeHtml(item.id)}">
+            <textarea maxlength="1900" rows="2" aria-label="Message to resident for ${entity} ${escapeHtml(item.id)}" placeholder="Message to client"></textarea>
+            <button type="button" class="btn-primary" data-send-message>Send update</button>
+            <small role="status" aria-live="polite"></small>
+        </div>`;
+    }
+
+    function bindMessageActions(tbody, entity) {
+        tbody.querySelectorAll(`[data-message-entity="${entity}"]`).forEach(control => {
+            control.querySelector('[data-send-message]').addEventListener('click', async () => {
+                const row = control.closest('tr');
+                const select = row.querySelector('.status-select');
+                const textarea = control.querySelector('textarea');
+                const button = control.querySelector('button');
+                const feedback = control.querySelector('small');
+                const message = textarea.value.trim();
+                if (!message) {
+                    feedback.textContent = 'Write a message before sending.';
+                    return;
+                }
+                button.disabled = true;
+                select.disabled = true;
+                feedback.textContent = 'Sending...';
+                try {
+                    await request(entity === 'pickup' ? 'send_pickup_notification' : 'send_issue_notification', {
+                        method: 'POST',
+                        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            [entity === 'pickup' ? 'pickup_id' : 'issue_id']: Number(control.dataset.id),
+                            status: select.value,
+                            message
+                        })
+                    });
+                    select.dataset.previous = select.value;
+                    textarea.value = '';
+                    feedback.textContent = 'Update sent to resident.';
+                    loadSummary();
+                } catch (error) {
+                    feedback.textContent = error.message;
+                    console.error('Unable to send update:', error);
+                } finally {
+                    button.disabled = false;
+                    select.disabled = false;
+                }
+            });
+        });
     }
 
     async function loadSchedules() {
@@ -499,6 +553,8 @@ function initAdminTheme() {
     function bindStatusChanges(tbody, entity) {
         tbody.querySelectorAll(`.status-select[data-entity="${entity}"]`).forEach(select => {
             select.addEventListener('change', async () => {
+                // Linked records save the selected status together with the message.
+                if (select.closest('tr').querySelector('[data-message-entity]')) return;
                 const previousValue = select.dataset.previous || select.value;
                 select.disabled = true;
                 try {

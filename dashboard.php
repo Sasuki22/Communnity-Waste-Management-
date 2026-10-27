@@ -567,6 +567,6 @@ $isAdmin = ($role === 'admin');
 
 
 <script src="config.js"></script>
-<script src="dashboard.js?v=20261027-logout-fix"></script>
+<script src="dashboard.js?v=20261027-notifications"></script>
 <script src="faq-assistant.js" defer></script>
 </body></html>

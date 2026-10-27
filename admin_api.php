@@ -99,14 +99,14 @@ function ensureNotificationsTable(mysqli $conn): bool
 
 // Handle different actions
 switch ($action) {
-    
+
     case 'summary':
         // Get summary statistics
         $totalUsers = $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
         $totalPickups = $conn->query("SELECT COUNT(*) as count FROM pickup_requests")->fetch_assoc()['count'];
         $pendingPickups = $conn->query("SELECT COUNT(*) as count FROM pickup_requests WHERE status='Pending'")->fetch_assoc()['count'];
         $totalIssues = $conn->query("SELECT COUNT(*) as count FROM reported_issues")->fetch_assoc()['count'];
-        
+
         echo json_encode([
             'success' => true,
             'data' => [
@@ -117,7 +117,7 @@ switch ($action) {
             ]
         ]);
         break;
-    
+
     case 'users':
         // Get all users
         $result = $conn->query("SELECT id, full_name, email, role, created_at FROM users ORDER BY id DESC");
@@ -127,7 +127,7 @@ switch ($action) {
         }
         echo json_encode(['success' => true, 'data' => $users]);
         break;
-    
+
     case 'pickups':
         // Get pickup requests with optional status filter
         $status = $data['status'] ?? $_GET['status'] ?? '';
@@ -139,14 +139,14 @@ switch ($action) {
         } else {
             $result = $conn->query("SELECT * FROM pickup_requests ORDER BY id DESC");
         }
-        
+
         $pickups = [];
         while ($row = $result->fetch_assoc()) {
             $pickups[] = $row;
         }
         echo json_encode(['success' => true, 'data' => $pickups]);
         break;
-    
+
     case 'issues':
         // Get issue reports with optional status filter
         $status = $data['status'] ?? $_GET['status'] ?? '';
@@ -158,7 +158,7 @@ switch ($action) {
         } else {
             $result = $conn->query("SELECT * FROM reported_issues ORDER BY id DESC");
         }
-        
+
         $issues = [];
         while ($row = $result->fetch_assoc()) {
             $issues[] = $row;
@@ -167,7 +167,7 @@ switch ($action) {
         break;
 
 
-    
+
     case 'schedules':
         if (!ensureSchedulesTable($conn)) {
             http_response_code(500);
@@ -381,7 +381,7 @@ switch ($action) {
 
         echo json_encode(['success' => true, 'message' => 'Announcement removed.']);
         break;
-    
+
     case 'update_pickup_status':
         // Update pickup request status
         if ($method !== 'POST') {
@@ -389,18 +389,18 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
             exit;
         }
-        
+
         $id = $data['id'] ?? 0;
         $newStatus = $data['status'] ?? '';
-        
+
         if ($id <= 0 || !in_array($newStatus, $pickupStatuses, true)) {
             echo json_encode(['success' => false, 'message' => 'Invalid pickup status.']);
             exit;
         }
-        
+
         $stmt = $conn->prepare("UPDATE pickup_requests SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $newStatus, $id);
-        
+
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Status updated successfully.']);
         } else {
@@ -410,6 +410,7 @@ switch ($action) {
         break;
 
     case 'send_pickup_notification':
+    case 'send_issue_notification':
         if ($method !== 'POST') {
             http_response_code(405);
             echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
@@ -420,30 +421,21 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Unable to prepare notifications.']);
             break;
         }
-        $pickupId = filter_var($data['pickup_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-        $status = trim($data['status'] ?? '');
-        $message = trim($data['message'] ?? '');
-        if (!$pickupId || !in_array($status, $pickupStatuses, true) || $message === '') {
+        $isPickup = $action === 'send_pickup_notification';
+        $recordId = filter_var($data[$isPickup ? 'pickup_id' : 'issue_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $status = is_string($data['status'] ?? null) ? trim($data['status']) : '';
+        $message = is_string($data['message'] ?? null) ? trim($data['message']) : '';
+        if (!$recordId || !in_array($status, $isPickup ? $pickupStatuses : $issueStatuses, true) || $message === '') {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => 'Please provide a valid status and message.']);
             break;
         }
-        if (mb_strlen($message) > 2000) {
+        if (strlen(($isPickup ? 'Pickup #' : 'Waste report #') . $recordId . ': ' . $message) > 2000) {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => 'The message must be 2,000 characters or fewer.']);
             break;
         }
-        $lookup = $conn->prepare("SELECT user_id FROM pickup_requests WHERE id = ?");
-        $lookup->bind_param('i', $pickupId);
-        $lookup->execute();
-        $request = $lookup->get_result()->fetch_assoc();
-        $lookup->close();
-        $recipientId = (int)($request['user_id'] ?? 0);
-        if (!$recipientId) {
-            http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'This pickup request is not linked to a user account.']);
-            break;
-        }
+        $table = $isPickup ? 'pickup_requests' : 'reported_issues';
         $notificationPickupColumn = 'pickup_request_id';
         $columnsResult = $conn->query("SHOW COLUMNS FROM notifications");
         if ($columnsResult) {
@@ -456,18 +448,45 @@ switch ($action) {
                 $notificationPickupColumn = 'pickup_id';
             }
         }
-        $stmt = $conn->prepare("INSERT INTO notifications (user_id, {$notificationPickupColumn}, status, message, created_by) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param('iissi', $recipientId, $pickupId, $status, $message, $userId);
-        $ok = $stmt->execute();
-        $stmt->close();
-        if (!$ok) {
+        try {
+            $conn->begin_transaction();
+            $lookup = $conn->prepare("SELECT user_id FROM {$table} WHERE id = ? FOR UPDATE");
+            if (!$lookup) throw new RuntimeException('Unable to find the request.');
+            $lookup->bind_param('i', $recordId);
+            if (!$lookup->execute()) throw new RuntimeException('Unable to find the request.');
+            $request = $lookup->get_result()->fetch_assoc();
+            $lookup->close();
+            $recipientId = (int)($request['user_id'] ?? 0);
+            if (!$recipientId) {
+                $conn->rollback();
+                http_response_code(422);
+                echo json_encode(['success' => false, 'message' => 'This record is not linked to a resident account.']);
+                break;
+            }
+            $update = $conn->prepare("UPDATE {$table} SET status = ? WHERE id = ?");
+            if (!$update) throw new RuntimeException('Unable to update status.');
+            $update->bind_param('si', $status, $recordId);
+            if (!$update->execute()) throw new RuntimeException('Unable to update status.');
+            $update->close();
+
+            // Report notifications leave the pickup reference NULL; the message identifies the report.
+            $notificationMessage = ($isPickup ? 'Pickup #' : 'Waste report #') . $recordId . ': ' . $message;
+            $pickupReference = $isPickup ? $recordId : null;
+            $stmt = $conn->prepare("INSERT INTO notifications (user_id, {$notificationPickupColumn}, status, message, created_by) VALUES (?, ?, ?, ?, ?)");
+            if (!$stmt) throw new RuntimeException('Unable to prepare notification.');
+            $stmt->bind_param('iissi', $recipientId, $pickupReference, $status, $notificationMessage, $userId);
+            if (!$stmt->execute()) throw new RuntimeException('Unable to save notification.');
+            $stmt->close();
+            $conn->commit();
+            echo json_encode(['success' => true, 'message' => 'Status updated and notification sent.']);
+        } catch (Throwable $error) {
+            $conn->rollback();
+            error_log('Admin notification failed: ' . $error->getMessage());
             http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Unable to send the notification.']);
-            break;
+            echo json_encode(['success' => false, 'message' => 'Unable to send update. No status change was saved.']);
         }
-        echo json_encode(['success' => true, 'message' => 'Notification sent successfully.']);
         break;
-    
+
     case 'update_issue_status':
         // Update issue report status
         if ($method !== 'POST') {
@@ -475,18 +494,18 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
             exit;
         }
-        
+
         $id = $data['id'] ?? 0;
         $newStatus = $data['status'] ?? '';
-        
+
         if ($id <= 0 || !in_array($newStatus, $issueStatuses, true)) {
             echo json_encode(['success' => false, 'message' => 'Invalid issue status.']);
             exit;
         }
-        
+
         $stmt = $conn->prepare("UPDATE reported_issues SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $newStatus, $id);
-        
+
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Status updated successfully.']);
         } else {
@@ -494,7 +513,7 @@ switch ($action) {
         }
         $stmt->close();
         break;
-    
+
     case 'analytics':
         // Get analytics data
         $pickupStats = [
@@ -503,37 +522,37 @@ switch ($action) {
             'Completed' => $conn->query("SELECT COUNT(*) as count FROM pickup_requests WHERE status='Completed'")->fetch_assoc()['count'],
             'Cancelled' => $conn->query("SELECT COUNT(*) as count FROM pickup_requests WHERE status='Cancelled'")->fetch_assoc()['count']
         ];
-        
+
         $issueStats = [
             'Open' => $conn->query("SELECT COUNT(*) as count FROM reported_issues WHERE status='Open'")->fetch_assoc()['count'],
             'In Progress' => $conn->query("SELECT COUNT(*) as count FROM reported_issues WHERE status='In Progress'")->fetch_assoc()['count'],
             'Resolved' => $conn->query("SELECT COUNT(*) as count FROM reported_issues WHERE status='Resolved'")->fetch_assoc()['count'],
             'Closed' => $conn->query("SELECT COUNT(*) as count FROM reported_issues WHERE status='Closed'")->fetch_assoc()['count']
         ];
-        
+
         $wasteTypeStats = [
             'General Waste' => $conn->query("SELECT COUNT(*) as count FROM pickup_requests WHERE waste_type='General Waste'")->fetch_assoc()['count'],
             'Recyclable' => $conn->query("SELECT COUNT(*) as count FROM pickup_requests WHERE waste_type LIKE '%Recyclable%'")->fetch_assoc()['count'],
             'Organic' => $conn->query("SELECT COUNT(*) as count FROM pickup_requests WHERE waste_type LIKE '%Organic%'")->fetch_assoc()['count'],
             'Hazardous' => $conn->query("SELECT COUNT(*) as count FROM pickup_requests WHERE waste_type LIKE '%Hazardous%'")->fetch_assoc()['count']
         ];
-        
+
         // Get recent activity
         $activities = [];
         $recentPickups = $conn->query("SELECT 'pickup' as type, user_name, created_at FROM pickup_requests ORDER BY created_at DESC LIMIT 5");
         $recentIssues = $conn->query("SELECT 'issue' as type, user_name, created_at FROM reported_issues ORDER BY created_at DESC LIMIT 5");
-        
+
         while ($row = $recentPickups->fetch_assoc()) {
             $activities[] = ['type' => 'pickup', 'message' => $row['user_name'] . ' requested a pickup', 'time' => $row['created_at']];
         }
-        
+
         while ($row = $recentIssues->fetch_assoc()) {
             $activities[] = ['type' => 'issue', 'message' => $row['user_name'] . ' reported an issue', 'time' => $row['created_at']];
         }
-        
+
         usort($activities, function($a, $b) { return strtotime($b['time']) - strtotime($a['time']); });
         $activities = array_slice($activities, 0, 10);
-        
+
         echo json_encode(['success' => true, 'data' => [
             'pickup_stats' => $pickupStats,
             'issue_stats' => $issueStats,
@@ -541,7 +560,7 @@ switch ($action) {
             'recent_activity' => $activities
         ]]);
         break;
-    
+
     default:
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid action.']);

@@ -26,7 +26,7 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
         })();
     </script>
 
-    <link rel="stylesheet" href="admin_modern.css">
+    <link rel="stylesheet" href="admin_modern.css?v=20261027-notifications">
 </head>
 <body>
     <div class="dashboard-layout">
@@ -40,7 +40,7 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                         <div class="logo-subtitle">Management</div>
                 </div>
             </div>
-            
+
          <a href="dashboard.php"
    class="back-dashboard-btn"
    title="Back to Website Dashboard">
@@ -74,7 +74,7 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                     <span class="nav-label">Announcements</span>
                 </a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <a href="logout.php" class="logout-btn">
                     <span class="logout-icon">🚪</span>
@@ -110,7 +110,7 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
 
             <!-- Content Area -->
             <main class="content-wrapper">
-                
+
                 <!-- Dashboard Tab -->
                 <div id="dashboard" class="tab-section active">
                     <!-- Welcome Banner -->
@@ -212,8 +212,8 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                         </div>
                         <div class="table-wrapper">
                             <table class="data-table">
-                                <thead><tr><th>ID</th><th>User</th><th>Waste Type</th><th>Location</th><th>Date</th><th>Status</th></tr></thead>
-                                <tbody id="pickupsTableBody"><tr><td colspan="6" class="loading-cell">Loading pickup requests...</td></tr></tbody>
+                                <thead><tr><th>ID</th><th>User</th><th>Waste Type</th><th>Location</th><th>Date</th><th>Status</th><th>Admin Message</th></tr></thead>
+                                <tbody id="pickupsTableBody"><tr><td colspan="7" class="loading-cell">Loading pickup requests...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -231,8 +231,8 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                         </div>
                         <div class="table-wrapper">
                             <table class="data-table">
-                                <thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>Status</th></tr></thead>
-                                <tbody id="reportsTableBody"><tr><td colspan="5" class="loading-cell">Loading reports...</td></tr></tbody>
+                                <thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>Status</th><th>Admin Message</th></tr></thead>
+                                <tbody id="reportsTableBody"><tr><td colspan="6" class="loading-cell">Loading reports...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -351,8 +351,8 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
             </main>
         </div>
     </div>
-    
-    <script src="admin_modern.js"></script>
+
+    <script src="admin_modern.js?v=20261027-notifications"></script>
 </body>
 </html>
 
