@@ -55,7 +55,7 @@ $isAdmin = ($role === 'admin');
                 <span class="toggle-icon">&#9790;</span> <span class="toggle-label">Dark</span>
             </button>
 
-            <a class="topbar-logout" href="#" id="logoutBtn" aria-label="Log out of your account">
+            <a class="topbar-logout" href="logout.php" id="logoutBtn" aria-label="Log out of your account">
                 <span aria-hidden="true">⇥</span>
                 <span>Logout</span>
             </a>
