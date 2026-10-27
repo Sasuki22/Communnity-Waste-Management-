@@ -173,10 +173,15 @@ function formatAnnouncementDate(value) {
     return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
+function scheduleIcon(icon) {
+    const icons = { trash: "🗑️", recycle: "♻️", leaf: "🌿", warning: "⚠️" };
+    return escapeHtml(icons[icon] || icon || "🗑️");
+}
+
 function renderUpcomingList(items, container) {
     container.innerHTML = items.map(item => `
-        <div class="schedule-row clickable" data-id="${item.id}">
-            <span>${item.icon || "🗑️"} ${escapeHtml(item.waste_type)}</span>
+        <div class="schedule-row clickable" data-id="${escapeHtml(item.id)}">
+            <span>${scheduleIcon(item.icon)} ${escapeHtml(item.waste_type)}</span>
             <span class="badge">${escapeHtml(item.day_of_week)}</span>
         </div>
     `).join("");
@@ -219,7 +224,7 @@ function renderScheduleCards(items, container) {
     container.innerHTML = items.map(item => `
         <div class="sched-card">
             <div class="sched-card-top">
-                <span class="sched-title">${item.icon || "🗑️"} ${escapeHtml(item.waste_type)}</span>
+                <span class="sched-title">${scheduleIcon(item.icon)} ${escapeHtml(item.waste_type)}</span>
                 <span class="badge">${escapeHtml(item.day_of_week)}</span>
             </div>
             <div class="sched-timing">
