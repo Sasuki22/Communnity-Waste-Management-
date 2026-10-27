@@ -10,7 +10,7 @@ $isAdmin = ($role === 'admin');
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard | Community Waste Management</title>
-<link rel="stylesheet" href="dashboard.css?v=20261027-admin-icon-only">
+<link rel="stylesheet" href="dashboard.css?v=20261027-admin-profile-bg">
 <link rel="stylesheet" href="faq-assistant.css">
 <link rel="icon" type="image/png" href="images/recycleIcon.png">
 </head>
@@ -19,7 +19,7 @@ $isAdmin = ($role === 'admin');
 <div class="main">
     <header class="topbar">
         <div class="topbar-left">
-            <button type="button" class="profile-info" id="profileBtn" aria-haspopup="dialog" aria-controls="profileModal">
+            <button type="button" class="profile-info<?= $isAdmin ? ' admin-profile' : '' ?>" id="profileBtn" aria-haspopup="dialog" aria-controls="profileModal">
               <span class="dashboard-avatar-wrapper">
     <img
         id="dashboardProfileImage"

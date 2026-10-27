@@ -4176,6 +4176,17 @@ html[data-theme="dark"] #profileModal .profile-details h3 {
     display: block !important;
 }
 
+/* Match the admin shortcut background without changing regular users' avatars. */
+#profileBtn.admin-profile .dashboard-avatar-wrapper {
+    background: #237b32;
+    border-radius: 12px !important;
+}
+
+#profileBtn.admin-profile #dashboardProfileImage {
+    width: 40px !important;
+    height: 40px !important;
+}
+
 #profileBtn .profile-identity {
     min-width: 0;
     display: flex;
@@ -4214,6 +4225,13 @@ html[data-theme="dark"] #profileModal .profile-details h3 {
         height: 42px !important;
         min-width: 42px !important;
         min-height: 42px !important;
+    }
+
+    #profileBtn.admin-profile #dashboardProfileImage {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
     }
 
     #profileBtn .profile-name {
