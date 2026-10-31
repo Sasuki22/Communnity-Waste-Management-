@@ -56,12 +56,13 @@ try {
 
     $name = trim((string)($_POST['full_name'] ?? ''));
     $email = strtolower(trim((string)($_POST['email'] ?? '')));
-    $phone = trim((string)($_POST['phone'] ?? ''));
+    require_once __DIR__ . '/profile_phone.php';
+    $phone = normalizeProfilePhone((string)($_POST['phone'] ?? ''));
     $address = trim((string)($_POST['address'] ?? ''));
     $length = function ($value) { return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value); };
     if ($name === '' || $length($name) > 100) profileReply(422, 'Enter a valid full name (maximum 100 characters).');
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254) profileReply(422, 'Enter a valid email address.');
-    if ($length($phone) > 30) profileReply(422, 'Phone number must be 30 characters or less.');
+    if ($phone === null) profileReply(422, 'Enter an 11-digit mobile number starting with 09, or +639 followed by 9 digits.');
     if ($length($address) > 255) profileReply(422, 'Address must be 255 characters or less.');
 
     $existing = $getProfile();
