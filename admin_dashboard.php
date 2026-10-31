@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 require_once 'config.php';
 
@@ -17,8 +17,9 @@ exit;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Community Waste Management</title>
+    <title>Admin Dashboard | Community Waste Management</title>
     <link rel="stylesheet" href="admin_dashboard.css">
+    <link rel="icon" type="image/png" href="images/recycleIcon.png">
 </head>
 <body>
     <div class="admin-layout">

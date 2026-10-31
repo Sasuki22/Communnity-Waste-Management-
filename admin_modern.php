@@ -13,8 +13,20 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Admin Dashboard - Community Waste Management</title>
-    <link rel="stylesheet" href="admin_modern.css">
+
+    <!-- SYNC DARK / LIGHT MODE WITH DASHBOARD -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem("cwm-theme");
+            const theme = savedTheme === "dark" ? "dark" : "light";
+
+            document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
+
+    <link rel="stylesheet" href="admin_modern.css?v=20261027-contact-inbox">
 </head>
 <body>
     <div class="dashboard-layout">
@@ -26,10 +38,16 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                     <div class="logo-text">
                         <div class="logo-title">Community Waste</div>
                         <div class="logo-subtitle">Management</div>
-                    </div>
                 </div>
             </div>
-            
+
+         <a href="dashboard.php"
+   class="back-dashboard-btn"
+   title="Back to Website Dashboard">
+    <span>🏠</span>
+</a>
+            </div>
+
             <nav class="sidebar-nav">
                 <a href="#dashboard" class="nav-link active" data-tab="dashboard">
                     <span class="nav-icon">🏠</span>
@@ -55,8 +73,12 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                     <span class="nav-icon">📢</span>
                     <span class="nav-label">Announcements</span>
                 </a>
+                <a href="#contact" class="nav-link" data-tab="contact">
+                    <span class="nav-icon">✉️</span>
+                    <span class="nav-label">Contact</span>
+                </a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <a href="logout.php" class="logout-btn">
                     <span class="logout-icon">🚪</span>
@@ -74,16 +96,25 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                     <h1 class="header-title">Community Waste Management</h1>
                 </div>
                 <div class="header-right">
-                    <div class="user-badge">
-                        <span class="user-icon">👤</span>
-                        <span class="user-name"><?= $name ?></span>
-                    </div>
+                   <div class="user-badge">
+    <span class="admin-avatar-wrapper">
+        <img
+            id="adminProfileImage"
+            src="images/user-solid-full.svg"
+            alt="Admin Profile Picture"
+        >
+    </span>
+
+    <span class="user-name">
+        <?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8') ?>
+    </span>
+</div>
                 </div>
             </header>
 
             <!-- Content Area -->
             <main class="content-wrapper">
-                
+
                 <!-- Dashboard Tab -->
                 <div id="dashboard" class="tab-section active">
                     <!-- Welcome Banner -->
@@ -185,8 +216,8 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                         </div>
                         <div class="table-wrapper">
                             <table class="data-table">
-                                <thead><tr><th>ID</th><th>User</th><th>Waste Type</th><th>Location</th><th>Date</th><th>Status</th></tr></thead>
-                                <tbody id="pickupsTableBody"><tr><td colspan="6" class="loading-cell">Loading pickup requests...</td></tr></tbody>
+                                <thead><tr><th>ID</th><th>User</th><th>Waste Type</th><th>Location</th><th>Date</th><th>Status</th><th>Admin Message</th></tr></thead>
+                                <tbody id="pickupsTableBody"><tr><td colspan="7" class="loading-cell">Loading pickup requests...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -204,8 +235,8 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                         </div>
                         <div class="table-wrapper">
                             <table class="data-table">
-                                <thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>Status</th></tr></thead>
-                                <tbody id="reportsTableBody"><tr><td colspan="5" class="loading-cell">Loading reports...</td></tr></tbody>
+                                <thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Description</th><th>Status</th><th>Admin Message</th></tr></thead>
+                                <tbody id="reportsTableBody"><tr><td colspan="6" class="loading-cell">Loading reports...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -217,14 +248,79 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                         <div class="section-header">
                             <div class="section-info">
                                 <h3 class="section-title">Collection Dates</h3>
-                                <p class="section-subtitle">Waste collection schedule</p>
+                                <p class="section-subtitle">Manage the collection days and times residents see on their dashboard.</p>
                             </div>
-                            <button class="btn-refresh" onclick="loadSchedules()"><span>🔄</span> <span>Refresh</span></button>
+                            <div class="schedule-header-actions">
+                                <button type="button" class="btn-refresh" onclick="loadSchedules()"><span>🔄</span> <span>Refresh</span></button>
+                                <button type="button" class="btn-primary" id="showScheduleForm"><span>➕</span> <span>Add Schedule</span></button>
+                            </div>
                         </div>
+
+                        <form id="scheduleForm" class="announcement-form schedule-form" hidden>
+                            <h4 id="scheduleFormTitle">Add Collection Schedule</h4>
+                            <input type="hidden" id="scheduleId" name="id">
+                            <div class="schedule-fields">
+                                <div class="schedule-field">
+                                    <label for="scheduleWasteType">Waste Type</label>
+                                    <input id="scheduleWasteType" name="waste_type" type="text" maxlength="100" required placeholder="e.g. General Waste">
+                                </div>
+                                <div class="schedule-field">
+                                    <label for="scheduleIcon">Icon</label>
+                                    <select id="scheduleIcon" name="icon" required>
+                                        <option value="🗑️">🗑️ General waste</option>
+                                        <option value="♻️">♻️ Recyclable</option>
+                                        <option value="🌿">🌿 Organic</option>
+                                        <option value="⚠️">⚠️ Hazardous</option>
+                                        <option value="🚚">🚚 Collection</option>
+                                        <option value="📅">📅 Schedule</option>
+                                    </select>
+                                </div>
+                                <div class="schedule-field">
+                                    <label for="scheduleDay">Collection Day</label>
+                                    <input id="scheduleDay" name="day_of_week" type="text" maxlength="50" required placeholder="e.g. Monday or Monday & Thursday">
+                                </div>
+                                <div class="schedule-field">
+                                    <label for="scheduleTime">Collection Time</label>
+                                    <input id="scheduleTime" name="time_slot" type="text" maxlength="50" required placeholder="e.g. 07:00 AM - 10:00 AM">
+                                </div>
+                                <div class="schedule-field">
+                                    <label for="scheduleZone">Zone</label>
+                                    <select id="scheduleZone" name="zone" required>
+                                        <option value="All Zones">All Zones</option>
+                                        <option value="Zone 1">Zone 1</option>
+                                        <option value="Zone 2">Zone 2</option>
+                                        <option value="Zone 3">Zone 3</option>
+                                    </select>
+                                </div>
+                                <div class="schedule-field">
+                                    <label for="scheduleFrequency">Frequency</label>
+                                    <select id="scheduleFrequency" name="frequency" required>
+                                        <option value="Weekly">Weekly</option>
+                                        <option value="Bi-Weekly">Bi-Weekly</option>
+                                        <option value="Daily">Daily</option>
+                                        <option value="Monthly">Monthly</option>
+                                    </select>
+                                </div>
+                                <div class="schedule-field full-width">
+                                    <label for="scheduleDescription">Description (optional)</label>
+                                    <textarea id="scheduleDescription" name="description" rows="2" maxlength="2000" placeholder="What residents should know about this collection"></textarea>
+                                </div>
+                                <label class="schedule-upcoming" for="scheduleUpcoming">
+                                    <input id="scheduleUpcoming" name="is_upcoming" type="checkbox" checked>
+                                    Show this schedule in the resident dashboard's Upcoming Schedule
+                                </label>
+                            </div>
+                            <div class="announcement-form-actions">
+                                <button type="button" class="btn-secondary" id="cancelScheduleForm">Cancel</button>
+                                <button type="submit" class="btn-primary" id="saveScheduleButton">Save Schedule</button>
+                            </div>
+                            <p id="scheduleFormMessage" class="schedule-form-message" role="status" aria-live="polite" hidden></p>
+                        </form>
+
                         <div class="table-wrapper">
                             <table class="data-table">
-                                <thead><tr><th>Waste Type</th><th>Day</th><th>Time</th><th>Zone</th></tr></thead>
-                                <tbody id="schedulesTableBody"><tr><td colspan="4" class="loading-cell">Loading schedules...</td></tr></tbody>
+                                <thead><tr><th>Waste Type</th><th>Day</th><th>Time</th><th>Zone</th><th>Frequency</th><th>Upcoming</th><th>Actions</th></tr></thead>
+                                <tbody id="schedulesTableBody"><tr><td colspan="7" class="loading-cell">Loading schedules...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -256,10 +352,27 @@ if ($role !== 'admin') { header('Location: dashboard.php'); exit; }
                     </div>
                 </div>
 
+                <!-- Contact Messages Tab -->
+                <div id="contact" class="tab-section">
+                    <div class="content-section">
+                        <div class="section-header">
+                            <div class="section-info">
+                                <h3 class="section-title">Contact Messages</h3>
+                                <p class="section-subtitle">Messages submitted through the public contact form</p>
+                            </div>
+                            <button type="button" class="btn-refresh" id="refreshContactMessages">Refresh</button>
+                        </div>
+                        <div id="contactMessagesList" class="contact-messages-list" aria-live="polite">
+                            <p class="loading-cell">Loading contact messages...</p>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
-    <script src="admin_modern.js"></script>
+
+    <script src="admin_modern.js?v=20261027-contact-inbox"></script>
 </body>
 </html>
 

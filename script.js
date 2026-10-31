@@ -205,17 +205,25 @@ function auth(tab = "login") {
                     autocomplete="email">
             </div>
 
-            <div class="auth-field">
-                <label for="lp">Password</label>
+           <div class="auth-field">
+    <label for="lp">Password</label>
 
-                <input
-                    id="lp"
-                    type="password"
-                    placeholder="Enter your password"
-                    required
-                    autocomplete="current-password">
-            </div>
+    <div class="password-input-wrap">
+        <input
+            id="lp"
+            type="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password">
+    </div>
+</div>
 
+<!-- Forgot Password -->
+<div class="forgot-password-container">
+    <a href="forgot_password.php" class="forgot-password-link">
+        Forgot Password?
+    </a>
+</div>
             <p
                 id="er"
                 class="auth-error"
@@ -267,25 +275,47 @@ const registerForm = `
             <div class="auth-field">
                 <label for="sp">Password</label>
 
-                <input
-                    id="sp"
-                    type="password"
-                    placeholder="Create a password"
-                    minlength="6"
-                    required
-                    autocomplete="new-password">
+                <div class="password-input-wrap">
+                    <input
+                        id="sp"
+                        type="password"
+                        placeholder="Create a password"
+                        minlength="6"
+                        required
+                        autocomplete="new-password">
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-password-toggle="sp"
+                        aria-label="Show password"
+                        aria-pressed="false">
+                        <img src="images/eye-solid-full.svg" alt="Eye" class="svg-icon">
+                    </button>
+                </div>
             </div>
 
             <div class="auth-field">
                 <label for="sc">Confirm Password</label>
 
-                <input
-                    id="sc"
-                    type="password"
-                    placeholder="Confirm your password"
-                    minlength="6"
-                    required
-                    autocomplete="new-password">
+                <div class="password-input-wrap">
+                    <input
+                        id="sc"
+                        type="password"
+                        placeholder="Confirm your password"
+                        minlength="6"
+                        required
+                        autocomplete="new-password">
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-password-toggle="sc"
+                        aria-label="Show password"
+                        aria-pressed="false">
+                        <img src="images/eye-solid-full.svg" alt="EyeSlash" class="svg-icon">
+                    </button>
+                </div>
             </div>
 
             <p
@@ -825,3 +855,70 @@ const response =
 );
 
 refresh();
+
+// Contact form: only show success after the server confirms database storage.
+document.addEventListener("submit", async (event) => {
+    if (event.target.id !== "contactForm") return;
+    event.preventDefault();
+
+    const form = event.target;
+    const sent = document.getElementById("sent");
+    const error = document.getElementById("contactError");
+    const button = form.querySelector('button[type="submit"]');
+    if (!sent || !error || !button) return;
+    sent.hidden = true;
+    sent.style.display = "none";
+    error.hidden = true;
+    button.disabled = true;
+    try {
+        const response = await fetch("contact.php", {
+            method: "POST",
+            headers: { "Accept": "application/json" },
+            body: new FormData(form)
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to send your message.");
+        }
+        sent.textContent = "Thanks! Your message was sent.";
+        sent.hidden = false;
+        sent.style.display = "block";
+        form.reset();
+    } catch (err) {
+        error.textContent = err.message || "Unable to send your message. Please try again.";
+        error.hidden = false;
+    } finally {
+        button.disabled = false;
+    }
+});
+
+// Reusable show/hide password toggle
+document.addEventListener("click", function (event) {
+    const button = event.target.closest("[data-password-toggle]");
+
+    if (!button) return;
+
+    const inputId = button.dataset.passwordToggle;
+    const passwordInput = document.getElementById(inputId);
+
+    if (!passwordInput) return;
+
+    const showPassword = passwordInput.type === "password";
+
+    passwordInput.type = showPassword ? "text" : "password";
+
+    button.setAttribute(
+        "aria-label",
+        showPassword ? "Hide password" : "Show password"
+    );
+
+    button.setAttribute("aria-pressed", String(showPassword));
+
+    const icon = button.querySelector("img");
+
+    if (icon) {
+        icon.src = showPassword
+            ? "images/eye-slash-solid-full.svg"
+            : "images/eye-solid-full.svg";
+    }
+});

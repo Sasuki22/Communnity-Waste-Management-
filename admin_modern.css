@@ -58,7 +58,7 @@ body {
 .logo-title {
     font-size: 16px;
     font-weight: 700;
-    color: #1B5E20;
+    color: #4CAF50;
     line-height: 1.2;
 }
 
@@ -201,7 +201,7 @@ body {
 
 .user-name {
     font-weight: 600;
-    color: #2E7D32;
+    color: #4CAF50;
     font-size: 15px;
 }
 
@@ -541,6 +541,11 @@ body {
     opacity: 0.65;
 }
 
+.admin-message-control { display: grid; gap: 8px; min-width: 190px; }
+.admin-message-control textarea { width: 100%; padding: 10px; border: 1px solid #C8E6C9; border-radius: 8px; font: inherit; resize: vertical; }
+.admin-message-control .btn-primary { justify-content: center; padding: 8px 12px; }
+.admin-message-control small { color: #2E7D32; }
+
 .btn-primary:disabled {
     cursor: not-allowed;
     opacity: 0.65;
@@ -652,3 +657,577 @@ body {
     }
 }
 
+
+/* ========== Collection Schedule Management ========== */
+.schedule-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.schedule-form h4 {
+    margin: 0 0 8px;
+    color: #1B5E20;
+    font-size: 18px;
+}
+
+.schedule-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+}
+
+.schedule-field {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+}
+
+.schedule-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.schedule-field label,
+.schedule-upcoming {
+    color: #35553B;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.schedule-field input,
+.schedule-field select,
+.schedule-field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #C8E6C9;
+    border-radius: 8px;
+    color: #263238;
+    background: #FFFFFF;
+    font: inherit;
+}
+
+.schedule-field textarea {
+    resize: vertical;
+}
+
+.schedule-field input:focus,
+.schedule-field select:focus,
+.schedule-field textarea:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.16);
+}
+
+.schedule-upcoming {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+}
+
+.schedule-upcoming input {
+    margin-top: 4px;
+    accent-color: #2E7D32;
+}
+
+.schedule-form-message {
+    margin-top: 12px;
+    color: #2E7D32;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.schedule-form-message.error-cell {
+    color: #B42318;
+}
+
+.schedule-state-badge {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: #ECEFF1;
+    color: #546E7A;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.schedule-state-badge.is-upcoming {
+    background: #E8F5E9;
+    color: #1B5E20;
+}
+
+.schedule-actions {
+    white-space: nowrap;
+}
+
+.schedule-action-edit,
+.schedule-action-delete {
+    padding: 7px 10px;
+    border: 1px solid #C8E6C9;
+    border-radius: 7px;
+    background: #FFFFFF;
+    color: #2E7D32;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.schedule-action-edit:hover {
+    background: #E8F5E9;
+}
+
+.schedule-action-delete {
+    border-color: #FFCDD2;
+    color: #B42318;
+}
+
+.schedule-action-delete:hover {
+    background: #FFF5F5;
+}
+
+@media (max-width: 760px) {
+    .schedule-header-actions {
+        justify-content: flex-start;
+        margin-top: 12px;
+    }
+
+    .section-header {
+        flex-wrap: wrap;
+    }
+
+    .schedule-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .schedule-field.full-width,
+    .schedule-upcoming {
+        grid-column: auto;
+    }
+}
+
+/* Admin contact inbox */
+.contact-messages-list {
+    display: grid;
+    gap: 14px;
+}
+
+.contact-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #c8e6c9;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #243328;
+    overflow-wrap: anywhere;
+}
+
+.contact-card-header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.contact-card-header time { color: #526457; font-size: 13px; }
+.contact-card a { color: #236d32; }
+.contact-card p { margin-top: 12px; }
+
+html[data-theme="dark"] .contact-card {
+    background: #294535;
+    border-color: #45614e;
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .contact-card-header time { color: #b9d4c2; }
+html[data-theme="dark"] .contact-card a { color: #a0edaf; }
+
+/* ADMIN DASHBOARD DARK MODE */
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+    background-color: #0d1813;
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .sidebar {
+    background-color: #14241b;
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .main-area,
+html[data-theme="dark"] .content-wrapper {
+    background-color: #0d1813;
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .top-header {
+    background-color: #17291f;
+    color: #edf7ef;
+    border-color: #355542;
+}
+
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .content-section,
+html[data-theme="dark"] .welcome-banner {
+    background: #20382b;
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .nav-link,
+html[data-theme="dark"] .section-title,
+html[data-theme="dark"] .header-title,
+html[data-theme="dark"] .welcome-title {
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .data-table {
+    background-color: #20382b;
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .data-table th,
+html[data-theme="dark"] .data-table td {
+    color: #edf7ef;
+    border-color: #355542;
+}
+
+/* =========================================
+   ADMIN DARK MODE - TABLE AND SIDEBAR FIX
+========================================= */
+
+html[data-theme="dark"] .data-table,
+html[data-theme="dark"] table {
+    background-color: #20382b;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] table thead,
+html[data-theme="dark"] table thead tr,
+html[data-theme="dark"] table th {
+    background-color: #294535;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] table tbody,
+html[data-theme="dark"] table tbody tr,
+html[data-theme="dark"] table td {
+    background-color: #20382b;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] table tbody tr:hover,
+html[data-theme="dark"] table tbody tr:hover td {
+    background-color: #355542;
+}
+
+/* Active sidebar menu */
+html[data-theme="dark"] .sidebar .nav-link.active {
+    background-color: #294535;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .sidebar .nav-link.active:hover {
+    background-color: #355542;
+    color: #ffffff;
+}
+
+/* Table borders */
+html[data-theme="dark"] table th,
+html[data-theme="dark"] table td {
+    border-color: #45614e;
+}
+
+/* DARK MODE - SIDEBAR HOVER FIX */
+
+html[data-theme="dark"] .sidebar .nav-link:hover,
+html[data-theme="dark"] .sidebar .nav-link:focus-visible {
+    background-color: #294535;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .sidebar .nav-link.active,
+html[data-theme="dark"] .sidebar .nav-link.active:hover {
+    background-color: #355542;
+    color: #ffffff;
+}
+
+/* DARK MODE - SIDEBAR MENU FIX */
+
+html[data-theme="dark"] .sidebar .nav-link,
+html[data-theme="dark"] .sidebar .nav-link:visited {
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .sidebar .nav-link:hover,
+html[data-theme="dark"] .sidebar .nav-link:focus,
+html[data-theme="dark"] .sidebar .nav-link:focus-visible {
+    background: #355542;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .sidebar .nav-link.active,
+html[data-theme="dark"] .sidebar .nav-link.active:hover,
+html[data-theme="dark"] .sidebar .nav-link.active:focus {
+    background: #294535;
+    color: #ffffff;
+}
+
+/* DARK MODE - DASHBOARD TEXT VISIBILITY */
+
+html[data-theme="dark"] .welcome-banner h1,
+html[data-theme="dark"] .welcome-banner p {
+    color: #edf7ef;
+}
+
+html[data-theme="dark"] .stat-card {
+    color: #edf7ef;
+}
+
+/* DARK MODE - ANNOUNCEMENT FORM FIX */
+
+html[data-theme="dark"] #announcementForm {
+    background-color: #294535;
+    color: #ffffff;
+    border-color: #45614e;
+}
+
+html[data-theme="dark"] #announcementForm label {
+    color: #ffffff;
+}
+
+html[data-theme="dark"] #announcementForm input,
+html[data-theme="dark"] #announcementForm textarea {
+    background-color: #17291f;
+    color: #ffffff;
+    border: 1px solid #45614e;
+}
+
+html[data-theme="dark"] #announcementForm input:focus,
+html[data-theme="dark"] #announcementForm textarea:focus {
+    border-color: #4caf50;
+    outline: none;
+}
+
+html[data-theme="dark"] #announcementForm input::placeholder,
+html[data-theme="dark"] #announcementForm textarea::placeholder {
+    color: #aebfb4;
+}
+
+/* =====================================
+   FIX: SIDEBAR TOGGLE RIGHT ALIGNMENT
+===================================== */
+
+.sidebar .sidebar-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 8px;
+}
+
+.sidebar .sidebar-header .logo {
+    display: flex !important;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto !important;
+}
+
+.sidebar .sidebar-header #sidebarToggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px !important;
+    min-width: 36px;
+    max-width: 36px;
+    height: 36px !important;
+
+    flex: 0 0 36px;
+    margin: 0 0 0 auto !important;
+    padding: 0 !important;
+
+    background: #e5f4e9;
+    color: #17642c;
+    border: 1px solid #d9e9dc;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+/* Dark mode */
+html[data-theme="dark"] .sidebar .sidebar-header #sidebarToggle {
+    background: #294535;
+    color: #ffffff;
+    border-color: #45614e;
+}
+
+/* BACK TO WEBSITE DASHBOARD */
+
+.back-dashboard-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #e5f4e9;
+    color: #17642c;
+    border: 1px solid #cde6d3;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+}
+
+.back-dashboard-btn:hover {
+    background: #cfe8d4;
+    color: #17642c;
+}
+
+html[data-theme="dark"] .back-dashboard-btn {
+    background: #294535;
+    color: #ffffff;
+    border-color: #45614e;
+}
+
+html[data-theme="dark"] .back-dashboard-btn:hover {
+    background: #355542;
+}
+
+/* =====================================
+   DARK MODE TEXT VISIBILITY FIX
+===================================== */
+
+/* Username sa upper-right corner */
+html[data-theme="dark"] .top-header .user-badge .user-name {
+    color: #4CAF50 !important;
+}
+
+/* WELCOME BACK TEXT - DARK MODE */
+
+/* Welcome back at exclamation mark */
+html[data-theme="dark"] .welcome-title {
+    color: #ffffff !important;
+}
+
+/* Username lang ang green */
+html[data-theme="dark"] .welcome-title strong {
+    color: #A0EDAF !important;
+}
+
+/* Numbers sa dashboard statistic cards */
+html[data-theme="dark"] .stat-card .stat-number {
+    color: #ffffff !important;
+}
+
+/* Labels sa statistic cards */
+html[data-theme="dark"] .stat-card .stat-label {
+    color: #d1e7d7 !important;
+}
+
+/* Sidebar logo */
+html[data-theme="dark"] .sidebar .logo-title,
+html[data-theme="dark"] .sidebar .logo-subtitle {
+    color: #4CAF50 !important;
+}
+
+/* FIX HEADER LOGO AND ADMIN BUTTON OVERLAP */
+
+.header-content,
+.navbar-container {
+    align-items: center;
+}
+
+.admin-dashboard-btn {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transform: none;
+}
+
+.admin-dashboard-btn:hover {
+    transform: none;
+}
+
+/* Use the actual header container class */
+
+.your-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.your-header-container .your-logo-container {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Admin Dashboard Profile Picture */
+
+.user-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-avatar-wrapper {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border: 3px solid #a8cfb1;
+    border-radius: 50%;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+#adminProfileImage {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* ADMIN PROFILE - DARK MODE */
+
+html[data-theme="dark"] .user-badge {
+    background-color: #20382b !important;
+    border: 1px solid #355542 !important;
+    border-radius: 20px !important;
+    color: #a0e8ad !important;
+}
+
+html[data-theme="dark"] .user-badge .user-name {
+    color: #a0e8ad !important;
+}
+
+/* Circular profile picture */
+html[data-theme="dark"] .admin-avatar-wrapper {
+    background-color: #20382b !important;
+    border: 3px solid #a8cfb1 !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+}
+
+html[data-theme="dark"] #adminProfileImage {
+    border-radius: 50% !important;
+    object-fit: cover !important;
+}

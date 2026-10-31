@@ -1,0 +1,295 @@
+/* FAQS */
+
+.faq-assistant {
+    --faq-accent: #2fa84f;
+    --faq-accent-soft: #effbe8;
+    --faq-bg: #ffffff;
+    --faq-fg: #1b2a1f;
+    --faq-muted: #5d6f63;
+    --faq-line: #dfeadf;
+
+    position: fixed;
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1000;
+}
+
+/* Dark mode: keep the selector your site uses, delete the others */
+.dark .faq-assistant,
+.dark-mode .faq-assistant,
+body.dark .faq-assistant,
+[data-theme="dark"] .faq-assistant {
+    --faq-accent-soft: #1b3225;
+    --faq-bg: #14231a;
+    --faq-fg: #e6f3e8;
+    --faq-muted: #9db5a3;
+    --faq-line: #25402f;
+}
+
+/* ---------- Floating orb ---------- */
+
+.faq-orb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    background: radial-gradient(circle at 32% 28%, #b9f6c3 0, #4cc66a 38%, #1f8f45 100%);
+    box-shadow:
+        0 10px 26px rgba(31, 143, 69, .45),
+        inset 0 -6px 12px rgba(0, 0, 0, .15),
+        inset 0 4px 10px rgba(255, 255, 255, .35);
+    animation: faq-float 7s ease-in-out infinite;
+}
+
+.faq-orb::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid rgba(76, 198, 106, .55);
+    animation: faq-pulse 2.8s ease-out infinite;
+    pointer-events: none;
+}
+
+.faq-orb svg {
+    transition: transform .4s ease;
+}
+
+.faq-orb:hover svg,
+.faq-orb:focus-visible svg {
+    transform: rotate(20deg) scale(1.1);
+}
+
+.faq-orb:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+
+.faq-orb-tip {
+    position: absolute;
+    right: calc(100% + 12px);
+    left: auto;
+    top: 50%;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--faq-bg);
+    color: var(--faq-fg);
+    font: 600 13px/1 system-ui, sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .18);
+    opacity: 0;
+    transform: translate(6px, -50%);
+    transition: opacity .2s ease, transform .2s ease;
+    pointer-events: none;
+}
+
+.faq-orb:hover .faq-orb-tip,
+.faq-orb:focus-visible .faq-orb-tip {
+    opacity: 1;
+    transform: translate(0, -50%);
+}
+
+.faq-assistant.is-open .faq-orb {
+    animation-play-state: paused;
+}
+
+.faq-assistant.is-open .faq-orb-tip {
+    display: none;
+}
+
+@keyframes faq-float {
+    0%, 100% { transform: translate(0, 0); }
+    25%      { transform: translate(8px, -10px); }
+    50%      { transform: translate(2px, -16px); }
+    75%      { transform: translate(-6px, -8px); }
+}
+
+@keyframes faq-pulse {
+    0%   { transform: scale(.92); opacity: .8; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* ---------- Panel ---------- */
+
+.faq-panel {
+    position: absolute;
+    right: 0;
+    left: auto;
+    bottom: 84px;
+    display: flex;
+    flex-direction: column;
+    width: min(360px, calc(100vw - 32px));
+    max-height: min(70vh, 540px);
+    overflow: hidden;
+    border-radius: 20px;
+    background: var(--faq-bg);
+    color: var(--faq-fg);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .28);
+    transform-origin: bottom right;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px) scale(.95);
+    transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
+}
+
+.faq-assistant.is-open .faq-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+}
+
+.faq-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    color: #fff;
+    background: linear-gradient(135deg, #2fa84f, #1f8f45);
+}
+
+.faq-head h2 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.faq-head p {
+    margin: 2px 0 0;
+    font-size: .8rem;
+    opacity: .9;
+}
+
+.faq-close {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .2);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.faq-close:hover { background: rgba(255, 255, 255, .35); }
+
+.faq-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px 16px;
+    overflow-y: auto;
+}
+
+.faq-search {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--faq-line);
+    border-radius: 999px;
+    background: var(--faq-accent-soft);
+    color: var(--faq-fg);
+    font: inherit;
+    font-size: .9rem;
+}
+
+.faq-search:focus {
+    outline: 2px solid var(--faq-accent);
+    outline-offset: 1px;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.faq-item {
+    border: 1px solid var(--faq-line);
+    border-radius: 12px;
+    background: var(--faq-accent-soft);
+}
+
+.faq-item[hidden] { display: none; }
+
+.faq-item summary {
+    position: relative;
+    padding: 12px 38px 12px 14px;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+.faq-item summary::-webkit-details-marker { display: none; }
+
+.faq-item summary::after {
+    content: "";
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--faq-accent);
+    border-bottom: 2px solid var(--faq-accent);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform .2s ease;
+}
+
+.faq-item[open] summary::after {
+    transform: translateY(-30%) rotate(-135deg);
+}
+
+.faq-item p {
+    margin: 0;
+    padding: 0 14px 14px;
+    font-size: .86rem;
+    line-height: 1.55;
+    color: var(--faq-muted);
+}
+
+.faq-empty {
+    margin: 4px 0;
+    text-align: center;
+    font-size: .85rem;
+    color: var(--faq-muted);
+}
+
+/* ---------- Small screens and reduced motion ---------- */
+
+@media (max-width: 480px) {
+    .faq-assistant { left: 14px; bottom: 14px; }
+    .faq-panel { width: calc(100vw - 28px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .faq-orb,
+    .faq-orb::before { animation: none; }
+    .faq-panel { transition: none; }
+}
+
+@font-face {
+    font-family: Geist;
+    src: url(fonts/GeistPixel-Regular-VariableFont_ELSH.ttf);
+}
+
+@font-face {
+    font-family: Mont;
+    src: url(fonts/Montserrat-VariableFont_wght.ttf);
+}
+
+.geistFont{
+    font-family: Geist;
+}
+
+.montFont{
+    font-family: Mont;
+}

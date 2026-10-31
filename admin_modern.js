@@ -2,12 +2,25 @@
 (() => {
     'use strict';
 
+     // SYNC DARK / LIGHT MODE
+function initAdminTheme() {
+    const savedTheme = localStorage.getItem("cwm-theme");
+
+    document.documentElement.setAttribute(
+        "data-theme",
+        savedTheme === "dark" ? "dark" : "light"
+    );
+}
+
     const API_URL = 'admin_api.php';
-    const TAB_NAMES = ['dashboard', 'users', 'pickups', 'reports', 'schedules', 'announcements'];
+    const TAB_NAMES = ['dashboard', 'users', 'pickups', 'reports', 'schedules', 'announcements', 'contact'];
     const PICKUP_STATUSES = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
     const ISSUE_STATUSES = ['Open', 'In Progress', 'Resolved', 'Closed'];
+    let scheduleCache = [];
+    let editingScheduleId = null;
 
     document.addEventListener('DOMContentLoaded', () => {
+        initAdminTheme();
         initNavigation();
         loadSummary();
         loadUsers();
@@ -16,6 +29,8 @@
         loadSchedules();
         loadAnnouncements();
         initAnnouncements();
+        initSchedules();
+        document.getElementById('refreshContactMessages')?.addEventListener('click', loadContactMessages);
     });
 
     function initNavigation() {
@@ -60,7 +75,8 @@
             pickups: loadPickups,
             reports: loadReports,
             schedules: loadSchedules,
-            announcements: loadAnnouncements
+            announcements: loadAnnouncements,
+            contact: loadContactMessages
         };
         if (loaders[tab]) loaders[tab]();
     }
@@ -159,11 +175,11 @@
     async function loadPickups() {
         const tbody = document.getElementById('pickupsTableBody');
         if (!tbody) return;
-        setLoading(tbody, 6, 'Loading pickup requests...');
+        setLoading(tbody, 7, 'Loading pickup requests...');
         try {
             renderPickups(await request('pickups'));
         } catch (error) {
-            setError(tbody, 6, error.message, loadPickups);
+            setError(tbody, 7, error.message, loadPickups);
             console.error('Unable to load pickup requests:', error);
         }
     }
@@ -172,7 +188,7 @@
         const tbody = document.getElementById('pickupsTableBody');
         if (!tbody) return;
         if (!Array.isArray(pickups) || pickups.length === 0) {
-            setEmpty(tbody, 6, 'No pickup requests found.');
+            setEmpty(tbody, 7, 'No pickup requests found.');
             return;
         }
         tbody.innerHTML = pickups.map(pickup => `
@@ -183,19 +199,21 @@
                 <td>${escapeHtml(pickup.address)}</td>
                 <td>${escapeHtml(formatDate(pickup.preferred_date))}</td>
                 <td>${renderStatusSelect('pickup', pickup.id, pickup.status, PICKUP_STATUSES)}</td>
+                <td>${renderMessageControl('pickup', pickup)}</td>
             </tr>
         `).join('');
         bindStatusChanges(tbody, 'pickup');
+        bindMessageActions(tbody, 'pickup');
     }
 
     async function loadReports() {
         const tbody = document.getElementById('reportsTableBody');
         if (!tbody) return;
-        setLoading(tbody, 5, 'Loading waste reports...');
+        setLoading(tbody, 6, 'Loading waste reports...');
         try {
             renderReports(await request('issues'));
         } catch (error) {
-            setError(tbody, 5, error.message, loadReports);
+            setError(tbody, 6, error.message, loadReports);
             console.error('Unable to load waste reports:', error);
         }
     }
@@ -204,7 +222,7 @@
         const tbody = document.getElementById('reportsTableBody');
         if (!tbody) return;
         if (!Array.isArray(reports) || reports.length === 0) {
-            setEmpty(tbody, 5, 'No waste reports found.');
+            setEmpty(tbody, 6, 'No waste reports found.');
             return;
         }
         tbody.innerHTML = reports.map(report => `
@@ -214,19 +232,71 @@
                 <td>${escapeHtml(report.location)}</td>
                 <td>${escapeHtml(report.description || '—')}</td>
                 <td>${renderStatusSelect('issue', report.id, report.status, ISSUE_STATUSES)}</td>
+                <td>${renderMessageControl('issue', report)}</td>
             </tr>
         `).join('');
         bindStatusChanges(tbody, 'issue');
+        bindMessageActions(tbody, 'issue');
+    }
+
+    function renderMessageControl(entity, item) {
+        if (!Number(item.user_id)) return '<span class="table-note">No linked resident account</span>';
+        return `<div class="admin-message-control" data-message-entity="${entity}" data-id="${escapeHtml(item.id)}">
+            <textarea maxlength="1900" rows="2" aria-label="Message to resident for ${entity} ${escapeHtml(item.id)}" placeholder="Message to client"></textarea>
+            <button type="button" class="btn-primary" data-send-message>Send update</button>
+            <small role="status" aria-live="polite"></small>
+        </div>`;
+    }
+
+    function bindMessageActions(tbody, entity) {
+        tbody.querySelectorAll(`[data-message-entity="${entity}"]`).forEach(control => {
+            control.querySelector('[data-send-message]').addEventListener('click', async () => {
+                const row = control.closest('tr');
+                const select = row.querySelector('.status-select');
+                const textarea = control.querySelector('textarea');
+                const button = control.querySelector('button');
+                const feedback = control.querySelector('small');
+                const message = textarea.value.trim();
+                if (!message) {
+                    feedback.textContent = 'Write a message before sending.';
+                    return;
+                }
+                button.disabled = true;
+                select.disabled = true;
+                feedback.textContent = 'Sending...';
+                try {
+                    await request(entity === 'pickup' ? 'send_pickup_notification' : 'send_issue_notification', {
+                        method: 'POST',
+                        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            [entity === 'pickup' ? 'pickup_id' : 'issue_id']: Number(control.dataset.id),
+                            status: select.value,
+                            message
+                        })
+                    });
+                    select.dataset.previous = select.value;
+                    textarea.value = '';
+                    feedback.textContent = 'Update sent to resident.';
+                    loadSummary();
+                } catch (error) {
+                    feedback.textContent = error.message;
+                    console.error('Unable to send update:', error);
+                } finally {
+                    button.disabled = false;
+                    select.disabled = false;
+                }
+            });
+        });
     }
 
     async function loadSchedules() {
         const tbody = document.getElementById('schedulesTableBody');
         if (!tbody) return;
-        setLoading(tbody, 4, 'Loading collection schedules...');
+        setLoading(tbody, 7, 'Loading collection schedules...');
         try {
             renderSchedules(await request('schedules'));
         } catch (error) {
-            setError(tbody, 4, error.message, loadSchedules);
+            setError(tbody, 7, error.message, loadSchedules);
             console.error('Unable to load schedules:', error);
         }
     }
@@ -311,6 +381,32 @@
         }
     }
 
+    async function loadContactMessages() {
+        const list = document.getElementById('contactMessagesList');
+        if (!list) return;
+        list.innerHTML = '<p class="loading-cell">Loading contact messages...</p>';
+        try {
+            const messages = await request('contact_messages');
+            if (!messages.length) {
+                list.innerHTML = '<p class="loading-cell">No contact messages yet.</p>';
+                return;
+            }
+            list.innerHTML = messages.map(item => `
+                <article class="contact-card">
+                    <div class="contact-card-header">
+                        <strong>${escapeHtml(item.name)}</strong>
+                        <time>${escapeHtml(item.created_at || '')}</time>
+                    </div>
+                    <a href="mailto:${escapeHtml(item.email)}">${escapeHtml(item.email)}</a>
+                    <p>${escapeHtml(item.message).replace(/\n/g, '<br>')}</p>
+                </article>
+            `).join('');
+        } catch (error) {
+            list.innerHTML = `<p class="loading-cell error-cell">${escapeHtml(error.message)} <button type="button" class="inline-retry" id="retryContactMessages">Retry</button></p>`;
+            document.getElementById('retryContactMessages')?.addEventListener('click', loadContactMessages);
+        }
+    }
+
     async function deleteAnnouncement(id) {
         if (!window.confirm('Delete this announcement?')) return;
         try {
@@ -326,21 +422,153 @@
         }
     }
 
+
+    function initSchedules() {
+        const form = document.getElementById('scheduleForm');
+        const addButton = document.getElementById('showScheduleForm');
+        const cancelButton = document.getElementById('cancelScheduleForm');
+        if (!form) return;
+
+        addButton?.addEventListener('click', () => openScheduleForm(null));
+        cancelButton?.addEventListener('click', closeScheduleForm);
+
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+            const saveButton = document.getElementById('saveScheduleButton');
+            const message = document.getElementById('scheduleFormMessage');
+            const payload = {
+                waste_type: document.getElementById('scheduleWasteType').value.trim(),
+                icon: document.getElementById('scheduleIcon').value,
+                day_of_week: document.getElementById('scheduleDay').value.trim(),
+                time_slot: document.getElementById('scheduleTime').value.trim(),
+                zone: document.getElementById('scheduleZone').value,
+                frequency: document.getElementById('scheduleFrequency').value,
+                description: document.getElementById('scheduleDescription').value.trim(),
+                is_upcoming: document.getElementById('scheduleUpcoming').checked
+            };
+
+            if (!payload.waste_type || !payload.day_of_week || !payload.time_slot) {
+                showScheduleMessage('Please complete the waste type, day, and time fields.', true);
+                return;
+            }
+
+            const wasEditing = editingScheduleId !== null;
+            if (saveButton) saveButton.disabled = true;
+            if (message) message.hidden = true;
+            try {
+                await request(wasEditing ? 'update_schedule' : 'create_schedule', {
+                    method: 'POST',
+                    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(editingScheduleId ? { ...payload, id: editingScheduleId } : payload)
+                });
+                closeScheduleForm();
+                await loadSchedules();
+                window.alert(wasEditing ? 'Schedule updated successfully.' : 'Schedule added successfully.');
+            } catch (error) {
+                showScheduleMessage(error.message, true);
+                console.error('Unable to save schedule:', error);
+            } finally {
+                if (saveButton) saveButton.disabled = false;
+            }
+        });
+    }
+
+    function openScheduleForm(schedule) {
+        const form = document.getElementById('scheduleForm');
+        const addButton = document.getElementById('showScheduleForm');
+        const title = document.getElementById('scheduleFormTitle');
+        const saveButton = document.getElementById('saveScheduleButton');
+        if (!form) return;
+
+        editingScheduleId = schedule ? Number(schedule.id) : null;
+        form.reset();
+        document.getElementById('scheduleId').value = schedule?.id ?? '';
+        document.getElementById('scheduleWasteType').value = schedule?.waste_type ?? '';
+        document.getElementById('scheduleIcon').value = schedule?.icon ?? '🗑️';
+        document.getElementById('scheduleDay').value = schedule?.day_of_week ?? '';
+        document.getElementById('scheduleTime').value = schedule?.time_slot ?? '';
+        document.getElementById('scheduleZone').value = schedule?.zone ?? 'All Zones';
+        document.getElementById('scheduleFrequency').value = schedule?.frequency ?? 'Weekly';
+        document.getElementById('scheduleDescription').value = schedule?.description ?? '';
+        document.getElementById('scheduleUpcoming').checked = schedule ? Number(schedule.is_upcoming) === 1 : true;
+        if (title) title.textContent = schedule ? `Edit Schedule #${schedule.id}` : 'Add Collection Schedule';
+        if (saveButton) saveButton.textContent = schedule ? 'Save Changes' : 'Save Schedule';
+        form.hidden = false;
+        if (addButton) addButton.hidden = true;
+        showScheduleMessage('', false);
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        document.getElementById('scheduleWasteType')?.focus({ preventScroll: true });
+    }
+
+    function closeScheduleForm() {
+        const form = document.getElementById('scheduleForm');
+        const addButton = document.getElementById('showScheduleForm');
+        if (form) {
+            form.reset();
+            form.hidden = true;
+        }
+        if (addButton) addButton.hidden = false;
+        editingScheduleId = null;
+        showScheduleMessage('', false);
+    }
+
+    function showScheduleMessage(text, isError) {
+        const message = document.getElementById('scheduleFormMessage');
+        if (!message) return;
+        message.textContent = text;
+        message.classList.toggle('error-cell', Boolean(isError));
+        message.hidden = !text;
+    }
+
     function renderSchedules(schedules) {
         const tbody = document.getElementById('schedulesTableBody');
         if (!tbody) return;
-        if (!Array.isArray(schedules) || schedules.length === 0) {
-            setEmpty(tbody, 4, 'No collection schedules found.');
+        scheduleCache = Array.isArray(schedules) ? schedules : [];
+        if (scheduleCache.length === 0) {
+            setEmpty(tbody, 7, 'No collection schedules found. Add one to get started.');
             return;
         }
-        tbody.innerHTML = schedules.map(schedule => `
+        tbody.innerHTML = scheduleCache.map(schedule => `
             <tr>
                 <td>${escapeHtml(schedule.icon || '🗑️')} ${escapeHtml(schedule.waste_type)}</td>
                 <td>${escapeHtml(schedule.day_of_week)}</td>
                 <td>${escapeHtml(schedule.time_slot)}</td>
                 <td>${escapeHtml(schedule.zone)}</td>
+                <td>${escapeHtml(schedule.frequency || 'Weekly')}</td>
+                <td><span class="schedule-state-badge ${Number(schedule.is_upcoming) === 1 ? 'is-upcoming' : ''}">${Number(schedule.is_upcoming) === 1 ? 'Upcoming' : 'View Full only'}</span></td>
+                <td class="schedule-actions">
+                    <button type="button" class="schedule-action-edit" data-schedule-edit="${escapeHtml(schedule.id)}">Edit</button>
+                    <button type="button" class="schedule-action-delete" data-schedule-delete="${escapeHtml(schedule.id)}">Delete</button>
+                </td>
             </tr>
         `).join('');
+
+        tbody.querySelectorAll('[data-schedule-edit]').forEach(button => {
+            button.addEventListener('click', () => {
+                const schedule = scheduleCache.find(item => Number(item.id) === Number(button.dataset.scheduleEdit));
+                if (schedule) openScheduleForm(schedule);
+            });
+        });
+        tbody.querySelectorAll('[data-schedule-delete]').forEach(button => {
+            button.addEventListener('click', () => deleteSchedule(Number(button.dataset.scheduleDelete)));
+        });
+    }
+
+    async function deleteSchedule(id) {
+        const schedule = scheduleCache.find(item => Number(item.id) === id);
+        if (!schedule || !window.confirm(`Delete "${schedule.waste_type}" for ${schedule.zone}?`)) return;
+        try {
+            await request('delete_schedule', {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            await loadSchedules();
+            window.alert('Schedule deleted successfully.');
+        } catch (error) {
+            window.alert(error.message);
+            console.error('Unable to delete schedule:', error);
+        }
     }
 
     function renderStatusSelect(entity, id, currentStatus, statuses) {
@@ -353,6 +581,8 @@
     function bindStatusChanges(tbody, entity) {
         tbody.querySelectorAll(`.status-select[data-entity="${entity}"]`).forEach(select => {
             select.addEventListener('change', async () => {
+                // Linked records save the selected status together with the message.
+                if (select.closest('tr').querySelector('[data-message-entity]')) return;
                 const previousValue = select.dataset.previous || select.value;
                 select.disabled = true;
                 try {
@@ -421,3 +651,37 @@
     window.loadSchedules = loadSchedules;
     window.loadAnnouncements = loadAnnouncements;
 })();
+
+/* Load Admin Profile Picture */
+
+async function loadAdminProfilePicture() {
+    const avatar = document.getElementById("adminProfileImage");
+
+    if (!avatar) return;
+
+    try {
+        const response = await fetch("profile_api.php", {
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to load profile.");
+        }
+
+        avatar.src =
+            data.user?.profile_picture ||
+            "images/user-solid-full.svg";
+
+    } catch (error) {
+        console.error("Admin profile picture error:", error);
+    }
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadAdminProfilePicture);
+} else {
+    loadAdminProfilePicture();
+}
